@@ -1,5 +1,4 @@
-import React from "react";
-import logo from "../assets/logo.png";
+import logo from "../../public/logo.jpg";
 
 export default function LandingPageHero(){
     return(

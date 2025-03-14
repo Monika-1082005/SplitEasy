@@ -1,4 +1,3 @@
-import React from "react";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -6,35 +5,36 @@ faAngleDown
 } from "@fortawesome/free-solid-svg-icons";
 
 const faqData = [
-    {
-      question: "What is React?",
-      answer: "React is a JavaScript library for building user interfaces.",
-    },
-    {
-      question: "What is JSX?",
-      answer:
-        "JSX is a syntax extension for JavaScript that looks similar to XML or HTML.",
-    },
-    {
-      question: "What are React hooks?",
-      answer:
-        "Hooks let you use state and other React features without writing a class.",
-    },
-    {
-        question: "What is React?",
-        answer: "React is a JavaScript library for building user interfaces.",
-      },
-      {
-        question: "What is JSX?",
-        answer:
-          "JSX is a syntax extension for JavaScript that looks similar to XML or HTML.",
-      },
-      {
-        question: "What are React hooks?",
-        answer:
-          "Hooks let you use state and other React features without writing a class.",
-      },
-  ];
+  {
+    question: "What is SplitEasy?",
+    answer: "SplitEasy is a web platform that helps you split expenses with friends and track pending payments effortlessly.",
+  },
+  {
+    question: "How do I add a new split?",
+    answer: "Go to the 'Add Split' section, enter the total amount, add participants, and specify their share. The system will notify them automatically.",
+  },
+  {
+    question: "Can I pay directly through SplitEasy?",
+    answer: "Yes! We integrate with payment gateways like Razorpay to facilitate direct payments via UPI, Paytm, or Google Pay.",
+  },
+  {
+    question: "How does SplitEasy track payments?",
+    answer: "Once a payment is made, it updates the pending payments section. If you pay manually, you can mark it as paid.",
+  },
+  {
+    question: "Will my friends get payment reminders?",
+    answer: "Yes, SplitEasy sends email reminders to your friends for pending payments.",
+  },
+  {
+    question: "Is SplitEasy free to use?",
+    answer: "Yes, SplitEasy is free to use. Some advanced features may require premium access in the future.",
+  },
+  {
+    question: "Can I settle payments partially?",
+    answer: "Currently, full payments are tracked, but we are working on adding partial payments soon!",
+  }
+];
+
 
 export default function FAQ(){
 

@@ -1,4 +1,4 @@
-import signUpImage from "../assets/signup.jpeg";
+import signUpImage from "../assets/signup_form_img.jpeg";
 import { Link } from "react-router-dom";
 
 export default function Signup() {

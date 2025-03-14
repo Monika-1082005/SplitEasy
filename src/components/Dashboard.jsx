@@ -11,8 +11,8 @@ import {
 } from "chart.js";
 
 import { Doughnut, Line } from "react-chartjs-2";
-import pendingPayment from "./PendingPayment.json";
-import settledPayment from "./SettledPayment.json";
+import pendingPayment from "../data/PendingPayment.json";
+import settledPayment from "../data/SettledPayment.json";
 
 ChartJS.register(
   CategoryScale,

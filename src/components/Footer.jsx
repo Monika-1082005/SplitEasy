@@ -1,6 +1,3 @@
-import React from "react";
-import logo1 from "../assets/logo1.png";
-
 export default function Footer() {
   return (
     <footer className="bg-[#1d214b] text-white">

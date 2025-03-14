@@ -1,5 +1,4 @@
-import React from "react";
-import logo from "../assets/logo.png";
+import logo from "../../public/logo.jpg";
 import { useNavigate } from "react-router-dom";
 
 export default function LandingPageNavbar(){

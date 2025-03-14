@@ -1,4 +1,4 @@
-import loginImage from "../../src/assets/login.jpeg";
+import loginImage from "../../src/assets/login_form_img.jpeg";
 
 import { Link } from "react-router-dom";
 
