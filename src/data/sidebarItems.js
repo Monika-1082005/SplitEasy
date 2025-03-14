@@ -1,7 +1,7 @@
 import { LayoutDashboard, Split, Hourglass, ListCheck, History, Settings, CircleHelp } from "lucide-react";
 
 const sidebarItems = [
-  { path: "/", icon: LayoutDashboard, text: "Dashboard" },
+  { path: "/dashboard", icon: LayoutDashboard, text: "Dashboard" },
   { path: "/create-split", icon: Split, text: "Create a Split", active: true },
   { path: "/pending-payments", icon: Hourglass, text: "Pending Payments" },
   { path: "/settled-payments", icon: ListCheck, text: "Settled Payments" },
