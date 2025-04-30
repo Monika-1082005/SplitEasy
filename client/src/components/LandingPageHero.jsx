@@ -1,4 +1,4 @@
-import logo from "../../public/logo.jpg";
+import logo from "/logo.jpg";
 
 export default function LandingPageHero(){
     return(
@@ -9,7 +9,7 @@ export default function LandingPageHero(){
         </div>
         <div className="text-sm md:text-lg text-[#1d214b] mt-2 md:mt-6 ">
           Tired of managing group expenses manually? SplitEasy makes it
-          effortless! Whether you're splitting bills with friends, planning a
+          effortless! Whether you’re splitting bills with friends, planning a
           trip, or sharing rent, our seamless platform helps you keep track of
           who owes what.
         </div>

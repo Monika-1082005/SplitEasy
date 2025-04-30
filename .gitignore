@@ -1,3 +1,18 @@
+# Client-specific
+client/node_modules/
+client/build/
+client/dist/
+client/.vite/
+client/.vscode/
+client/.idea/
+
+# Server-specific
+server/node_modules/
+server/.env
+server/*.log
+server/.vscode/
+server/.idea/
+
 # Logs
 logs
 *.log
@@ -7,7 +22,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+# node_modules
 dist
 dist-ssr
 *.local

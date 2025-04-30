@@ -1,4 +1,3 @@
-import React from "react";
 import LandingPageNavbar from "./LandingPageNavbar";
 import LandingPageHero from "./LandingPageHero";
 import FAQ from "./FAQ"

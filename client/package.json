@@ -19,6 +19,8 @@
     "@mui/icons-material": "^6.4.5",
     "@mui/material": "^6.4.5",
     "@tailwindcss/vite": "^4.0.7",
+    "alert": "^6.0.2",
+    "axios": "^1.8.4",
     "chart.js": "^4.4.8",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
@@ -26,6 +28,7 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.2.0",
+    "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
     "spliteasy": "file:",
     "tailwind": "^4.0.0"
