@@ -12,6 +12,8 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
+
 
   const validateField = (fieldName, value) => {
     let message = "";
@@ -87,7 +89,7 @@ export default function Signup() {
     if (!validateForm()) return;
 
     axios
-      .post("http://localhost:3001/sign_up", {
+      .post(`${apiUrl}/sign_up`, {
         username,
         email,
         password,

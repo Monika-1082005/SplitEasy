@@ -10,6 +10,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
+
 
   const validateField = (fieldName, value) => {
     let message = "";
@@ -64,7 +66,7 @@ export default function Login() {
 
     // Send only email and password to the backend
     axios
-      .post("http://localhost:3001/login", { email, password })
+      .post(`${apiUrl}/login`, { email, password })
       .then((result) => {
         console.log(result);
         navigate("/dashboard");

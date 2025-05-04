@@ -5,6 +5,7 @@ client/dist/
 client/.vite/
 client/.vscode/
 client/.idea/
+client/.env
 
 # Server-specific
 server/node_modules/

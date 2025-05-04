@@ -1,114 +1,56 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const SignUpModel = require("./models/Users");
-const { v4: uuidv4 } = require("uuid"); // Import v4 and rename it as uuidv4
-const transporter = require("./mailer");
-require('dotenv').config();  // This will load environment variables from .env file
+const session = require("express-session");
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+require("dotenv").config();
+
+// Local imports
+const googleContactsAuthRoutes = require("./routes/googleContactsAuthRoutes");
+const contactRoutes = require("./routes/contactRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const app = express();
+
+// Middleware
 app.use(express.json());
-app.use(cors())
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true,
+}));
 
-mongoose.connect("mongodb://localhost:27017/users")
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: true,
+  saveUninitialized: true,
+}));
 
-app.post("/sign_up", async (req, res) => {
-    const { username, email, password } = req.body;
-    console.log("Received data:", { username, email, password });
-    const verificationToken = uuidv4(); // Generate a unique token (verification token in our case)
+app.use(passport.initialize());
+app.use(passport.session());
 
-    try {
-        const existingUser = await SignUpModel.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "User already exists" });
-        }
+// MongoDB Connection
+mongoose.connect("mongodb://localhost:27017/users");
 
-        const newUser = new SignUpModel({
-            username,
-            email,
-            password,
-            verificationToken
-        });
+// Passport Google OAuth
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL,
+}, async (accessToken, refreshToken, profile, done) => {
+  return done(null, { profile, accessToken });
+}));
 
-        await newUser.save();
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
 
-        const verifyLink = `http://localhost:3001/verify/${verificationToken}`; // or use process.env.BASE_URL
-        const mailOptions = {
-            from: process.env.EMAIL_USER, // or process.env.EMAIL_USER
-            to: email,
-            subject: "Verify Your Email",
-            html: `<p>Hello ${username},</p>
-             <p>Click <a href="${verifyLink}">here</a> to verify your email address.</p>`
-        };
+// Use Routes
+app.use(googleContactsAuthRoutes);
+app.use(contactRoutes);
+app.use(userRoutes);
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error("Error sending email:", error);
-                return res.status(500).json({ message: "Failed to send verification email" });
-            } else {
-                return res.status(200).json({ message: "Signup successful. Please check your email to verify your account." });
-            }
-        });
-
-    } catch (error) {
-        console.error("Signup error:", error);
-        res.status(500).json({ message: "Signup failed" });
-    }
+// Start Server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-app.get("/verify/:token", async (req, res) => {
-    const { token } = req.params;
-    const user = await SignUpModel.findOne({ verificationToken: token });
-
-    if (!user) return res.status(400).send("Invalid or expired verification link.");
-
-    user.isVerified = true;
-    user.verificationToken = null;
-    await user.save();
-
-    res.send("Email verified successfully! You can now log in.");
-});
-
-
-app.post('/login', (req, res) => {
-    const { email, password } = req.body;
-
-    // Search user by email only
-    SignUpModel.findOne({ email })
-        .then(user => {
-            if (!user) {
-                // If user doesn't exist, send error message to client
-                console.log("User not found");
-                return res.status(404).json({ error: "User not found" });
-            }
-
-            console.log("User found:", user);
-
-            if (!user.isVerified) {
-                // If the email is not verified, return a message
-                console.log("Email not verified");
-                return res.status(403).json({ message: "Please verify your email before logging in." });
-            }
-
-            // Check if password matches
-            if (user.password !== password) {
-                // If password doesn't match, send error message
-                console.log("Incorrect password");
-                return res.status(401).json({ error: "Incorrect password" });
-            }
-
-            // If everything is fine, proceed with login
-            console.log("Login successful");
-            res.json({ message: "Login successful", user });
-        })
-        .catch(err => {
-            console.log("Error during login:", err);
-            res.status(500).json({ error: "Login error", details: err });
-        });
-});
-
-
-
-app.listen(3001, () => {
-    console.log("Server is running")
-})
