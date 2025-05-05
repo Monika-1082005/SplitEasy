@@ -130,7 +130,7 @@ const Dashboard = () => {
         {cards.map((card, index) => (
           <div
             key={index}
-            className="p-10 bg-white rounded-lg shadow-lg flex items-center gap-4 mt-5 border-gray-200"
+            className="p-10 bg-white rounded-lg shadow-lg flex items-center gap-4 border-gray-200"
           >
             {card.icon}
             <div>

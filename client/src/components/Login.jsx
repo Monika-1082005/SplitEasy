@@ -5,11 +5,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const validateField = (fieldName, value) => {
     let message = "";
@@ -64,7 +66,7 @@ export default function Login() {
 
     // Send only email and password to the backend
     axios
-      .post("http://localhost:3001/login", { email, password })
+      .post(`${apiUrl}/login`, { email, password })
       .then((result) => {
         console.log(result);
         navigate("/dashboard");
@@ -139,7 +141,6 @@ export default function Login() {
               Login
             </button>
           </form>
-          <ToastContainer />
           <div className="flex flex-col items-center gap-0">
             <p className="text-sm font-medium">Don&apos;t have an account?</p>
             <Link
@@ -157,6 +158,7 @@ export default function Login() {
           className="w-[480px] object-cover lg:rounded-tr-2xl lg:rounded-br-2xl lg:block hidden"
         />
       </div>
+      <ToastContainer />
     </section>
   );
 }

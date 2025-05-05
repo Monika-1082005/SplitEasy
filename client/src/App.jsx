@@ -10,8 +10,11 @@ import CreateSplit from "./components/CreateSplit";
 import sidebarItems from "./data/sidebarItems";
 import { SidebarItem } from "./components/Sidebar";
 import PendingPayments from "./components/PendingPayments";
+import JoinGroup from "./components/JoinGroup";
+
 import SettledPayments from "./components/SettledPayments";
 import './App.css';
+
 
 function App() {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -23,6 +26,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/join-group" element={<JoinGroup />} />
+
 
         {/* Protected Routes (Dashboard & Features) */}
         <Route 
