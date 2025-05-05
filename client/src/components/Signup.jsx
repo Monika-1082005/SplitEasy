@@ -4,6 +4,8 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+
 
 export default function Signup() {
   const [username, setUsername] = useState("");
@@ -12,6 +14,7 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const validateField = (fieldName, value) => {
     let message = "";
@@ -87,7 +90,7 @@ export default function Signup() {
     if (!validateForm()) return;
 
     axios
-      .post("http://localhost:3001/sign_up", {
+      .post(`${apiUrl}/sign_up`, {
         username,
         email,
         password,
@@ -208,7 +211,6 @@ export default function Signup() {
               Sign Up
             </button>
           </form>
-
           <div className="flex flex-col items-center gap-0">
             <p className="text-sm font-medium">Already have an account?</p>
             <Link
@@ -220,8 +222,7 @@ export default function Signup() {
           </div>
         </div>
 
-        <ToastContainer />
-
+        
         {/* Right Side - Image */}
         <img
           src={signUpImage}
@@ -229,6 +230,7 @@ export default function Signup() {
           className="w-[490px] lg:rounded-tr-2xl lg:rounded-br-2xl lg:block hidden"
         />
       </div>
+      <ToastContainer />
     </section>
   );
 }
