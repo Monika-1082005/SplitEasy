@@ -16,6 +16,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
 
+
   const validateField = (fieldName, value) => {
     let message = "";
 
