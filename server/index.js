@@ -49,13 +49,11 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 
-const authRoutes = require("./routes/auth");
-const groupRoutes = require("./routes/group");
+const groupRoutes = require("./routes/groupRoutes");
 // Use Routes
 app.use(googleContactsAuthRoutes);
 app.use(contactRoutes);
 app.use(userRoutes);
-app.use("/", authRoutes);    // For login/signup/verify
 app.use("/", groupRoutes);  // For group creation
 
 // Start Server
