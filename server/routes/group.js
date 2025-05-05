@@ -22,10 +22,12 @@ router.post("/create-group", async (req, res) => {
   }
 });
 
-
 router.post("/create", async (req, res) => {
   try {
     const { name, memberEmails = [], createdBy, inviteToken } = req.body;
+
+    // Auto-generate inviteToken if it's not provided or is empty
+    const finalToken = inviteToken && inviteToken.trim() !== "" ? inviteToken : uuidv4();
 
     const members = memberEmails
       .filter((email) => email.trim() !== "")
@@ -39,7 +41,7 @@ router.post("/create", async (req, res) => {
       name,
       createdBy,
       members,
-      inviteToken, // optional: only used if an invite link was generated
+      inviteToken: finalToken, // Use the finalToken here
     });
 
     await group.save();
@@ -59,7 +61,6 @@ router.get("/details/:token", async (req, res) => {
       path: "createdBy",
       select: "username", 
     });
-    
 
     if (!group) {
       return res.status(404).json({ message: "Group not found" });

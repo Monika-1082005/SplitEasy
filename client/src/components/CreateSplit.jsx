@@ -67,7 +67,7 @@ export default function CreateSplit() {
     try {
       const res = await axios.post(`${apiUrl}/create-group`, {
         name: groupName,
-        createdBy: "6814ab0cbe772976ee29fc7a",
+        createdBy: "6818b4d049374b022f6ca50b",
       });
 
       if (res.data.inviteLink && res.data.inviteToken) {
@@ -313,7 +313,7 @@ export default function CreateSplit() {
                       {
                         name: groupName,
                         memberEmails: validEmails,
-                        createdBy: "6814ab0cbe772976ee29fc7a",
+                        createdBy: "6818b4d049374b022f6ca50b",
                         inviteToken,
                       }
                     );

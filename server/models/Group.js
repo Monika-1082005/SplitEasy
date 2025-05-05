@@ -27,8 +27,27 @@ const groupSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  inviteToken: { type: String, unique: true, sparse: true },
+  inviteToken: {
+    type: String,
+    unique: true,
+    sparse: true,
+    validate: {
+      validator: function (v) {
+        // Prevent empty strings (""), allow undefined
+        return v === undefined || v === null || v.trim().length > 0;
+      },
+      message: "inviteToken cannot be an empty string",
+    },
+  },
 });
 
+
+// Auto-generate inviteToken if it's missing or empty
+groupSchema.pre("save", function (next) {
+  if (!this.inviteToken || this.inviteToken.trim() === "") {
+    this.inviteToken = crypto.randomBytes(8).toString("hex"); // Generate a random invite token
+  }
+  next();
+});
 const GroupModel = mongoose.model("groups", groupSchema);
 module.exports = GroupModel;
