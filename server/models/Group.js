@@ -43,10 +43,28 @@ const groupSchema = new mongoose.Schema({
 
 
 // Auto-generate inviteToken if it's missing or empty
-groupSchema.pre("save", function (next) {
+groupSchema.pre("save", async function (next) {
+  // Only generate a token if not provided
   if (!this.inviteToken || this.inviteToken.trim() === "") {
-    this.inviteToken = crypto.randomBytes(8).toString("hex"); // Generate a random invite token
+    let token;
+    let exists = true;
+    let attempts = 0;
+
+    while (exists && attempts < 5) {
+      token = crypto.randomBytes(8).toString("hex");
+      const existing = await mongoose.models.groups.findOne({ inviteToken: token });
+      if (!existing) {
+        exists = false;
+        this.inviteToken = token;
+      }
+      attempts++;
+    }
+
+    if (exists) {
+      return next(new Error("Failed to generate a unique inviteToken"));
+    }
   }
+
   next();
 });
 const GroupModel = mongoose.model("groups", groupSchema);

@@ -63,13 +63,21 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
-    // Send only email and password to the backend
+  
     axios
       .post(`${apiUrl}/login`, { email, password })
       .then((result) => {
-        console.log(result);
-        navigate("/dashboard");
+        const { userId, message } = result.data;
+  
+        if (message === "Login successful") {
+          // ✅ Store userId in localStorage
+          localStorage.setItem("userId", userId);
+  
+          toast.success("Login successful!", { autoClose: 2000 });
+          navigate("/dashboard");
+        } else {
+          toast.error(message || "Login failed");
+        }
       })
       .catch((err) => {
         if (err.response && err.response.status === 404) {
@@ -86,6 +94,7 @@ export default function Login() {
         console.log(err);
       });
   };
+  
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-[url('../../src/assets/bg.png')] bg-cover">
