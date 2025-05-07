@@ -104,6 +104,9 @@ export default function Signup() {
           toast.success("Signup successful. Please verify your email.", {
             autoClose: 2500,
           });
+          if (result.data.userId) {
+            localStorage.setItem("userId", result.data.userId); // Save userId to localStorage
+          }
           setTimeout(() => {
             navigate("/login");
           }, 4000);

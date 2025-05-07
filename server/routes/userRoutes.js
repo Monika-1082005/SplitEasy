@@ -37,7 +37,7 @@ router.post("/sign_up", async (req, res) => {
         console.error("Error sending email:", error);
         return res.status(500).json({ message: "Failed to send verification email" });
       } else {
-        return res.status(200).json({ message: "Signup successful. Please check your email to verify your account." });
+        return res.status(200).json({ message: "Signup successful. Please check your email to verify your account." , userId: newUser._id, });
       }
     });
 
@@ -69,7 +69,7 @@ router.post("/login", (req, res) => {
       if (!user.isVerified) return res.status(403).json({ message: "Please verify your email before logging in." });
       if (user.password !== password) return res.status(401).json({ error: "Incorrect password" });
 
-      res.json({ message: "Login successful", user });
+      res.json({ message: "Login successful",  userId: user._id,  });
     })
     .catch(err => {
       console.error("Error during login:", err);

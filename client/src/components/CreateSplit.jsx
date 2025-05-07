@@ -8,20 +8,20 @@ import {
   faTimes,
   faLink,
   faImage,
-  faSync
+  faSync,
 } from "@fortawesome/free-solid-svg-icons";
 import splitMoney from "../assets/split_money.png";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import {ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CreateSplit() {
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [emails, setEmails] = useState([""]);
   const [emailErrors, setEmailErrors] = useState([""]);
-  const [groups, setGroups] = useState(["Friends", "Family"]);
+  const [groups, setGroups] = useState([]);
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -32,7 +32,6 @@ export default function CreateSplit() {
   const [userId, setUserId] = useState(null);
   const [inviteToken, setInviteToken] = useState("");
   const apiUrl = import.meta.env.VITE_API_URL;
-
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   useEffect(() => {
@@ -63,24 +62,39 @@ export default function CreateSplit() {
     setEmailErrors(newErrors);
   };
 
+  const handleAddGroupClick = () => {
+    setShowGroupModal(true);
+    setInviteLink(null);  // Reset the invite link when the modal opens
+  };
+
   const handleSendInvite = async () => {
+    // Retrieve the userId from localStorage
+    const userId = localStorage.getItem("userId");
+  
+    if (!userId) {
+      toast.error("User is not logged in or userId not found", { autoClose: 2000 });
+      return;
+    }
+  
     try {
       const res = await axios.post(`${apiUrl}/create-group`, {
         name: groupName,
-        createdBy: "6818b4d049374b022f6ca50b",
+        createdBy: userId,  // Use the userId from localStorage here
       });
-
+  
       if (res.data.inviteLink && res.data.inviteToken) {
         setInviteLink(res.data.inviteLink);
         setInviteToken(res.data.inviteToken);
+        setGroups((prev) => [...prev, groupName]);
       } else {
-        toast.error("Failed to generate invite link",{autoClose:2000});
+        toast.error("Failed to generate invite link", { autoClose: 2000 });
       }
     } catch (err) {
       console.error("Error generating invite link:", err);
-      toast.error("Could not generate invite link",{autoClose:2000});
+      toast.error("Could not generate invite link", { autoClose: 2000 });
     }
   };
+  
 
   const handleImportContacts = async () => {
     // Redirect user for authentication
@@ -125,7 +139,6 @@ export default function CreateSplit() {
       setLoading(false);
     }
   };
-
 
   const formatContact = (contact) => {
     const name = contact.names?.[0]?.displayName;
@@ -184,7 +197,7 @@ export default function CreateSplit() {
           </h2>
           <button
             className="flex items-center justify-center w-3/4 p-3 bg-[#1F3C9A] text-white rounded-md hover:bg-[#1D214B] transition hover:cursor-pointer"
-            onClick={() => setShowGroupModal(true)}
+            onClick={handleAddGroupClick}
           >
             <FontAwesomeIcon icon={faUsers} className="mr-2" />
             Add a Group
@@ -192,30 +205,29 @@ export default function CreateSplit() {
         </div>
 
         <div className="flex-1 bg-white p-6 rounded-lg shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg flex flex-col items-center">
-  <h2 className="text-lg font-semibold mb-4 text-[#1D214B]">
-    Import Contacts
-  </h2>
-  <div className="flex w-full justify-between">
-    <button
-      className="flex items-center justify-center w-1/2 p-3 bg-[#1F3C9A] text-white rounded-md hover:bg-[#1D214B] transition hover:cursor-pointer"
-      onClick={handleImportContacts}
-    >
-      <FontAwesomeIcon icon={faAddressBook} className="mr-2" />
-      Import Contacts
-    </button>
-    <button
-      onClick={fetchContacts}
-      className="flex items-center justify-center w-1/2 px-3 py-2 ml-2 bg-[#198754] text-white rounded-md font-semibold hover:cursor-pointer hover:bg-white hover:text-black ring-2 ring-[#198754]"
-    >
-      <FontAwesomeIcon icon={faSync} className="mr-2" />
-      Fetch Contacts
-    </button>
-  </div>
-  {/* Loading and Error Messages */}
-  {loading && <p className="mt-4 text-gray-700">Loading contacts...</p>}
-  {error && <p className="mt-4 text-red-500">{error}</p>}
-</div>
-
+          <h2 className="text-lg font-semibold mb-4 text-[#1D214B]">
+            Import Contacts
+          </h2>
+          <div className="flex w-full justify-between">
+            <button
+              className="flex items-center justify-center w-1/2 p-3 bg-[#1F3C9A] text-white rounded-md hover:bg-[#1D214B] transition hover:cursor-pointer"
+              onClick={handleImportContacts}
+            >
+              <FontAwesomeIcon icon={faAddressBook} className="mr-2" />
+              Import Contacts
+            </button>
+            <button
+              onClick={fetchContacts}
+              className="flex items-center justify-center w-1/2 px-3 py-2 ml-2 bg-[#198754] text-white rounded-md font-semibold hover:cursor-pointer hover:bg-white hover:text-black ring-2 ring-[#198754]"
+            >
+              <FontAwesomeIcon icon={faSync} className="mr-2" />
+              Fetch Contacts
+            </button>
+          </div>
+          {/* Loading and Error Messages */}
+          {loading && <p className="mt-4 text-gray-700">Loading contacts...</p>}
+          {error && <p className="mt-4 text-red-500">{error}</p>}
+        </div>
       </div>
 
       {showGroupModal && (
@@ -252,7 +264,7 @@ export default function CreateSplit() {
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(inviteLink);
-                      toast.info("Link copied!",{autoClose:1000});
+                      toast.info("Link copied!", { autoClose: 1000 });
                     }}
                     className="ml-2 text-blue-600 text-sm hover:underline cursor-pointer"
                   >
@@ -302,30 +314,40 @@ export default function CreateSplit() {
 
                   if (hasInvalidEmails) {
                     toast.info(
-                      "Please fix invalid email(s) before submitting.",{autoClose:2000}
+                      "Please fix invalid email(s) before submitting.",
+                      { autoClose: 2000 }
                     );
                     return;
                   }
 
                   try {
-                    const res = await axios.post(
-                      `${apiUrl}/create`,
-                      {
-                        name: groupName,
-                        memberEmails: validEmails,
-                        createdBy: "6818b4d049374b022f6ca50b",
-                        inviteToken,
-                      }
-                    );
-                    toast.success("Group created successfully!",{autoClose:2000});
+                    const userId = localStorage.getItem("userId"); // Get the stored userId
+                  
+                    if (!userId) {
+                      toast.error("User ID not found. Please login again.", { autoClose: 2000 });
+                      return;
+                    }
+                  
+                    const res = await axios.post(`${apiUrl}/create`, {
+                      name: groupName,
+                      memberEmails: validEmails,
+                      createdBy: userId, // Use userId instead of token
+                      inviteToken,
+                    });
+                  
+                    toast.success("Group created successfully!", {
+                      autoClose: 2000,
+                    });
                     setShowGroupModal(false);
+                    setGroups((prev) => [...prev, groupName]);
                     setGroupName("");
                     setEmails([""]);
                     setEmailErrors([""]);
                   } catch (err) {
                     console.error("Error creating group:", err);
-                    toast.error("Failed to create group",{autoClose:2000});
+                    toast.error("Failed to create group", { autoClose: 2000 });
                   }
+                  
                 }}
               >
                 Save
@@ -459,7 +481,7 @@ export default function CreateSplit() {
           </div>
         </div>
       )}
-      <ToastContainer /> 
+      <ToastContainer />
     </div>
   );
 }
