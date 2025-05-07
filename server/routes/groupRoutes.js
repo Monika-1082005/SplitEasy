@@ -119,4 +119,18 @@ router.get("/join-group", async (req, res) => {
   }
 });
 
+
+router.get("/get-groups", async (req, res) => {
+  const { createdBy } = req.query; // Get createdBy (userId) from query params
+
+  try {
+    const groups = await GroupModel.find({ createdBy }); // Fetch groups where createdBy matches userId
+    res.status(200).json({ success: true, groups });
+  } catch (err) {
+    console.error("Error fetching groups:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch groups" });
+  }
+});
+
+
 module.exports = router;
