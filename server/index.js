@@ -10,6 +10,7 @@ require("dotenv").config();
 const googleContactsAuthRoutes = require("./routes/googleContactsAuthRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const userRoutes = require("./routes/userRoutes");
+const splitRoutes = require("./routes/splitRoutes")
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use(googleContactsAuthRoutes);
 app.use(contactRoutes);
 app.use(userRoutes);
 app.use("/", groupRoutes);  // For group creation
+app.use(splitRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 3001;

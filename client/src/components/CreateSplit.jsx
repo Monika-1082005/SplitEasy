@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect } from "react";
 import {
@@ -22,6 +22,7 @@ export default function CreateSplit() {
   const [emails, setEmails] = useState([""]);
   const [emailErrors, setEmailErrors] = useState([""]);
   const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("");
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -33,6 +34,26 @@ export default function CreateSplit() {
   const [inviteToken, setInviteToken] = useState("");
   const apiUrl = import.meta.env.VITE_API_URL;
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const [title, setTitle] = useState('');
+  const [notifyDays, setNotifyDays] = useState(0);
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [fileName, setFileName] = useState("No file chosen");
+  const fileInputRef = useRef(null);
+
+
+  const resetSplitForm = () => {
+    setTitle('');
+    setNotifyDays('');
+    setAmount('');
+    setSplitOption('equally');
+    setDescription('');
+    setFileName("No file chosen");
+    setSelected(null);
+    setSelectedGroup("");
+    // Do NOT reset group or contacts here
+  };
+  
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -45,6 +66,11 @@ export default function CreateSplit() {
       }
     }
   }, []);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFileName(file ? file.name : "No file chosen");
+  };
 
   const addEmailField = () => {
     setEmails([...emails, ""]);
@@ -64,24 +90,26 @@ export default function CreateSplit() {
 
   const handleAddGroupClick = () => {
     setShowGroupModal(true);
-    setInviteLink(null);  // Reset the invite link when the modal opens
+    setInviteLink(null); // Reset the invite link when the modal opens
   };
 
   const handleSendInvite = async () => {
     // Retrieve the userId from localStorage
     const userId = localStorage.getItem("userId");
-  
+
     if (!userId) {
-      toast.error("User is not logged in or userId not found", { autoClose: 2000 });
+      toast.error("User is not logged in or userId not found", {
+        autoClose: 2000,
+      });
       return;
     }
-  
+
     try {
       const res = await axios.post(`${apiUrl}/create-group`, {
         name: groupName,
-        createdBy: userId,  // Use the userId from localStorage here
+        createdBy: userId, // Use the userId from localStorage here
       });
-  
+
       if (res.data.inviteLink && res.data.inviteToken) {
         setInviteLink(res.data.inviteLink);
         setInviteToken(res.data.inviteToken);
@@ -94,7 +122,6 @@ export default function CreateSplit() {
       toast.error("Could not generate invite link", { autoClose: 2000 });
     }
   };
-  
 
   const handleImportContacts = async () => {
     // Redirect user for authentication
@@ -166,6 +193,71 @@ export default function CreateSplit() {
     return details;
   };
 
+  useEffect(() => {
+    const userId = localStorage.getItem("userId"); // Get userId from localStorage
+
+    if (userId) {
+      axios
+        .get(`${apiUrl}/get-groups`, {
+          params: { createdBy: userId }, // Pass the userId to fetch their groups
+        })
+        .then((res) => {
+          if (res.data.success) {
+            setGroups(res.data.groups); // Set groups if the request is successful
+          } else {
+            toast.error("Failed to load groups", { autoClose: 2000 });
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching groups:", err);
+          toast.error("Something went wrong while fetching groups", {
+            autoClose: 2000,
+          });
+        });
+    } else {
+      toast.error("No user logged in", { autoClose: 2000 });
+    }
+  }, [apiUrl]);
+
+  const handleGroupChange = (e) => {
+    setSelectedGroup(e.target.value); // Handle group selection
+  };
+
+  const handleSave = async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.error("User is not logged in or userId not found", {
+        autoClose: 2000,
+      });
+      return;
+    }
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('group', selectedGroup);
+    formData.append('contacts', JSON.stringify(selected));
+    formData.append('notifyDays', notifyDays);
+    formData.append('amount', amount);
+    formData.append('splitOption', splitOption);
+    formData.append('description', description);
+
+    if (fileInputRef.current.files[0]) {
+      formData.append('image', fileInputRef.current.files[0]);
+    }
+    formData.append('createdBy',userId)
+
+    try {
+      const response = await axios.post(`${apiUrl}/splits`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Split saved:', response.data);
+      setShowSplitModal(false);  // Close modal after saving
+    } catch (error) {
+      console.error('Error saving split:', error);
+    }
+  };
+
   return (
     <div className="flex flex-col justify-center items-center px-4 space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-4xl flex flex-col md:flex-row items-center">
@@ -175,7 +267,10 @@ export default function CreateSplit() {
           </h2>
           <button
             className="flex items-center justify-center w-3/4 p-3 bg-[#1F3C9A] text-white rounded-md hover:bg-[#1D214B] transition hover:cursor-pointer"
-            onClick={() => setShowSplitModal(true)}
+            onClick={() => {
+              resetSplitForm();          // Resets form fields
+              setShowSplitModal(true);   // Opens modal
+            }}
           >
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Add a Split
@@ -322,19 +417,21 @@ export default function CreateSplit() {
 
                   try {
                     const userId = localStorage.getItem("userId"); // Get the stored userId
-                  
+
                     if (!userId) {
-                      toast.error("User ID not found. Please login again.", { autoClose: 2000 });
+                      toast.error("User ID not found. Please login again.", {
+                        autoClose: 2000,
+                      });
                       return;
                     }
-                  
+
                     const res = await axios.post(`${apiUrl}/create`, {
                       name: groupName,
                       memberEmails: validEmails,
                       createdBy: userId, // Use userId instead of token
                       inviteToken,
                     });
-                  
+
                     toast.success("Group created successfully!", {
                       autoClose: 2000,
                     });
@@ -347,7 +444,6 @@ export default function CreateSplit() {
                     console.error("Error creating group:", err);
                     toast.error("Failed to create group", { autoClose: 2000 });
                   }
-                  
                 }}
               >
                 Save
@@ -382,21 +478,35 @@ export default function CreateSplit() {
                 id="split-title"
                 placeholder="Add Title for Split"
                 className="flex-1 p-2 border border-gray-300 rounded-md"
+                value={title}
+              onChange={(e) => setTitle(e.target.value)}
               />
             </div>
 
             {/* Flex container for two options */}
             <div className="flex space-x-4 mb-4">
-              <select className="w-1/2 p-2 border border-gray-300 rounded-md">
+              <select
+                className="w-1/2 p-2 border border-gray-300 rounded-md"
+                value={selectedGroup}
+                onChange={handleGroupChange}
+              >
                 <option>Select Group</option>
                 {groups.map((group, index) => (
-                  <option key={index}>{group}</option>
+                  <option key={index} value={group._id}>
+                    {" "}
+                    {/* Assuming group._id is unique */}
+                    {group.name}
+                  </option>
                 ))}
               </select>
 
               <input
-                type="date"
+                type="number"
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
+                placeholder="Notify After (days)"
+                value={notifyDays}
+              onChange={(e) => setNotifyDays(e.target.value)}
+                min="0"
               />
             </div>
 
@@ -450,6 +560,8 @@ export default function CreateSplit() {
                 type="number"
                 placeholder="Amount"
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
+                value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               />
               <select
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
@@ -462,19 +574,44 @@ export default function CreateSplit() {
             </div>
 
             {/* Flex container for Description and Add Image/Note */}
-            <div className="flex space-x-4 mb-4">
-              <textarea
-                placeholder="Add Description"
-                className="w-1/2 p-2 border border-gray-300 rounded-md"
-              />
 
-              <button className="w-1/2 p-2 bg-gray-200 rounded-md hover:cursor-pointer">
-                <FontAwesomeIcon icon={faImage} /> Add Image/Note
-              </button>
+            <div className="flex space-x-4 mb-4">
+              <div className="w-1/2">
+                <textarea
+                  placeholder="Add Description"
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                  value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="w-1/2 flex flex-col items-start space-y-1">
+                <button
+                  className="w-full p-2 bg-gray-200 rounded-md hover:cursor-pointer flex items-center space-x-2 justify-center "
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <FontAwesomeIcon icon={faImage} />
+                  <span>Add Image/Note</span>
+                </button>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+
+                <span className="text-sm text-gray-600 self-center">
+                  {fileName}
+                </span>
+              </div>
             </div>
 
             <div className="flex justify-end">
-              <button className="px-6 py-2 ring-2 text-[#198754] ring-[#198754] hover:bg-[#198754] hover:text-white rounded-md hover:cursor-pointer">
+              <button className="px-6 py-2 ring-2 text-[#198754] ring-[#198754] hover:bg-[#198754] hover:text-white rounded-md hover:cursor-pointer"
+              onClick={handleSave}
+              >
                 Save
               </button>
             </div>
