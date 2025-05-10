@@ -4,8 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
-
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Signup() {
   const [username, setUsername] = useState("");
@@ -15,7 +14,6 @@ export default function Signup() {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL;
-
 
   const validateField = (fieldName, value) => {
     let message = "";
@@ -116,7 +114,11 @@ export default function Signup() {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Something went wrong during signup.");
+        if (err.response && err.response.status === 400) {
+          toast.error(err.response.data.message || "Bad Request");
+        } else {
+          toast.error("Something went wrong during signup.");
+        }
       });
   };
 
@@ -226,7 +228,6 @@ export default function Signup() {
           </div>
         </div>
 
-        
         {/* Right Side - Image */}
         <img
           src={signUpImage}

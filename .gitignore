@@ -13,6 +13,7 @@ server/.env
 server/*.log
 server/.vscode/
 server/.idea/
+server/uploads/
 
 # Logs
 logs

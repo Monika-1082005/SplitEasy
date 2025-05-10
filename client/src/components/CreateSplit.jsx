@@ -12,7 +12,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import splitMoney from "../assets/split_money.png";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -22,6 +21,7 @@ export default function CreateSplit() {
   const [emails, setEmails] = useState([""]);
   const [emailErrors, setEmailErrors] = useState([""]);
   const [groups, setGroups] = useState([]);
+  const [groupNameError, setGroupNameError] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,42 +30,27 @@ export default function CreateSplit() {
   const [splitOption, setSplitOption] = useState("equally");
   const [groupName, setGroupName] = useState("");
   const [inviteLink, setInviteLink] = useState("");
-  const [userId, setUserId] = useState(null);
   const [inviteToken, setInviteToken] = useState("");
   const apiUrl = import.meta.env.VITE_API_URL;
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
   const [notifyDays, setNotifyDays] = useState(0);
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
   const [fileName, setFileName] = useState("No file chosen");
   const fileInputRef = useRef(null);
 
-
   const resetSplitForm = () => {
-    setTitle('');
-    setNotifyDays('');
-    setAmount('');
-    setSplitOption('equally');
-    setDescription('');
+    setTitle("");
+    setNotifyDays("");
+    setAmount("");
+    setSplitOption("equally");
+    setDescription("");
     setFileName("No file chosen");
     setSelected(null);
     setSelectedGroup("");
     // Do NOT reset group or contacts here
   };
-  
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUserId(decoded.userId);
-      } catch (error) {
-        console.error("Invalid token:", error);
-      }
-    }
-  }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -194,16 +179,19 @@ export default function CreateSplit() {
   };
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId"); // Get userId from localStorage
+    fetchGroups(); // Initial load
+  });
 
+  const fetchGroups = () => {
+    const userId = localStorage.getItem("userId");
     if (userId) {
       axios
         .get(`${apiUrl}/get-groups`, {
-          params: { createdBy: userId }, // Pass the userId to fetch their groups
+          params: { createdBy: userId },
         })
         .then((res) => {
           if (res.data.success) {
-            setGroups(res.data.groups); // Set groups if the request is successful
+            setGroups(res.data.groups);
           } else {
             toast.error("Failed to load groups", { autoClose: 2000 });
           }
@@ -217,13 +205,67 @@ export default function CreateSplit() {
     } else {
       toast.error("No user logged in", { autoClose: 2000 });
     }
-  }, [apiUrl]);
+  };
+
+  const handleGroupSave = async () => {
+    const trimmedName = groupName.trim();
+
+    // ✅ Check for empty group name
+    if (trimmedName.length === 0) {
+      setGroupNameError("Please specify a group name.");
+      return;
+    } else {
+      setGroupNameError(""); // Clear any previous error
+    }
+
+    const validEmails = emails.filter((email) => email.trim() !== "");
+
+    const hasInvalidEmails = validEmails.some((email) => !isValidEmail(email));
+
+    if (hasInvalidEmails) {
+      toast.info("Please fix invalid email(s) before submitting.", {
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    try {
+      const userId = localStorage.getItem("userId");
+
+      if (!userId) {
+        toast.error("User ID not found. Please login again.", {
+          autoClose: 2000,
+        });
+        return;
+      }
+
+      const res = await axios.post(`${apiUrl}/create`, {
+        name: trimmedName, // use trimmed name
+        memberEmails: validEmails,
+        createdBy: userId,
+        inviteToken,
+      });
+
+      toast.success("Group created successfully!", {
+        autoClose: 2000,
+      });
+
+      setShowGroupModal(false);
+      setGroups((prev) => [...prev, res.data.group]);
+      setGroupName("");
+      setEmails([""]);
+      setEmailErrors([""]);
+    } catch (err) {
+      console.error("Error creating group:", err);
+      toast.error("Failed to create group", { autoClose: 2000 });
+    }
+  };
 
   const handleGroupChange = (e) => {
     setSelectedGroup(e.target.value); // Handle group selection
   };
 
-  const handleSave = async () => {
+  const handleSplitSave = async () => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
       toast.error("User is not logged in or userId not found", {
@@ -231,30 +273,41 @@ export default function CreateSplit() {
       });
       return;
     }
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('group', selectedGroup);
-    formData.append('contacts', JSON.stringify(selected));
-    formData.append('notifyDays', notifyDays);
-    formData.append('amount', amount);
-    formData.append('splitOption', splitOption);
-    formData.append('description', description);
 
-    if (fileInputRef.current.files[0]) {
-      formData.append('image', fileInputRef.current.files[0]);
+    // Validation: must select at least a group or contact
+    if (!selectedGroup && (!selected || selected.length === 0)) {
+      toast.error("You must select at least a group or a contact", {
+        autoClose: 2000,
+      });
+      return;
     }
-    formData.append('createdBy',userId)
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("group", selectedGroup || "");
+    formData.append("contacts", JSON.stringify(selected || []));
+    formData.append("notifyDays", notifyDays);
+    formData.append("amount", amount);
+    formData.append("splitOption", splitOption);
+    formData.append("description", description);
+    formData.append("createdBy", userId);
+
+    if (fileInputRef.current?.files[0]) {
+      formData.append("image", fileInputRef.current.files[0]);
+    }
 
     try {
-      const response = await axios.post(`${apiUrl}/splits`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await axios.post(`${apiUrl}/splits`, formData);
+      console.log("Split saved:", response.data);
+      toast.success("Your split has been created successfully!", {
+        autoClose: 2000,
       });
-      console.log('Split saved:', response.data);
-      setShowSplitModal(false);  // Close modal after saving
+      setShowSplitModal(false); // Close modal after saving
     } catch (error) {
-      console.error('Error saving split:', error);
+      console.error("Error saving split:", error);
+      toast.error("There was an error saving the split. Please try again.", {
+        autoClose: 2000,
+      });
     }
   };
 
@@ -268,8 +321,9 @@ export default function CreateSplit() {
           <button
             className="flex items-center justify-center w-3/4 p-3 bg-[#1F3C9A] text-white rounded-md hover:bg-[#1D214B] transition hover:cursor-pointer"
             onClick={() => {
-              resetSplitForm();          // Resets form fields
-              setShowSplitModal(true);   // Opens modal
+              resetSplitForm(); // Resets form fields
+              fetchGroups();
+              setShowSplitModal(true); // Opens modal
             }}
           >
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
@@ -342,9 +396,14 @@ export default function CreateSplit() {
               placeholder="Group Name"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              className="w-full p-2 mb-4 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 rounded-md"
             />
-            <div className="mb-4">
+            {groupNameError && (
+              <p style={{ color: "red", fontSize: "0.9rem" }}>
+                {groupNameError}
+              </p>
+            )}
+            <div className="mb-4 mt-4">
               <button
                 className="w-full p-2 bg-[#1F3C9A] text-white rounded-md hover:cursor-pointer flex items-center justify-center"
                 onClick={handleSendInvite}
@@ -398,53 +457,7 @@ export default function CreateSplit() {
             <div className="flex justify-end">
               <button
                 className="px-6 py-2 ring-2 text-[#198754] ring-[#198754] hover:bg-[#198754] hover:text-white rounded-md hover:cursor-pointer"
-                onClick={async () => {
-                  const validEmails = emails.filter(
-                    (email) => email.trim() !== ""
-                  );
-
-                  const hasInvalidEmails = validEmails.some(
-                    (email) => !isValidEmail(email)
-                  );
-
-                  if (hasInvalidEmails) {
-                    toast.info(
-                      "Please fix invalid email(s) before submitting.",
-                      { autoClose: 2000 }
-                    );
-                    return;
-                  }
-
-                  try {
-                    const userId = localStorage.getItem("userId"); // Get the stored userId
-
-                    if (!userId) {
-                      toast.error("User ID not found. Please login again.", {
-                        autoClose: 2000,
-                      });
-                      return;
-                    }
-
-                    const res = await axios.post(`${apiUrl}/create`, {
-                      name: groupName,
-                      memberEmails: validEmails,
-                      createdBy: userId, // Use userId instead of token
-                      inviteToken,
-                    });
-
-                    toast.success("Group created successfully!", {
-                      autoClose: 2000,
-                    });
-                    setShowGroupModal(false);
-                    setGroups((prev) => [...prev, groupName]);
-                    setGroupName("");
-                    setEmails([""]);
-                    setEmailErrors([""]);
-                  } catch (err) {
-                    console.error("Error creating group:", err);
-                    toast.error("Failed to create group", { autoClose: 2000 });
-                  }
-                }}
+                onClick={handleGroupSave}
               >
                 Save
               </button>
@@ -479,7 +492,7 @@ export default function CreateSplit() {
                 placeholder="Add Title for Split"
                 className="flex-1 p-2 border border-gray-300 rounded-md"
                 value={title}
-              onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => setTitle(e.target.value)}
               />
             </div>
 
@@ -505,7 +518,7 @@ export default function CreateSplit() {
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
                 placeholder="Notify After (days)"
                 value={notifyDays}
-              onChange={(e) => setNotifyDays(e.target.value)}
+                onChange={(e) => setNotifyDays(e.target.value)}
                 min="0"
               />
             </div>
@@ -561,7 +574,7 @@ export default function CreateSplit() {
                 placeholder="Amount"
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
                 value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => setAmount(e.target.value)}
               />
               <select
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
@@ -581,7 +594,7 @@ export default function CreateSplit() {
                   placeholder="Add Description"
                   className="w-full p-2 border border-gray-300 rounded-md"
                   value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
 
@@ -609,8 +622,9 @@ export default function CreateSplit() {
             </div>
 
             <div className="flex justify-end">
-              <button className="px-6 py-2 ring-2 text-[#198754] ring-[#198754] hover:bg-[#198754] hover:text-white rounded-md hover:cursor-pointer"
-              onClick={handleSave}
+              <button
+                className="px-6 py-2 ring-2 text-[#198754] ring-[#198754] hover:bg-[#198754] hover:text-white rounded-md hover:cursor-pointer"
+                onClick={handleSplitSave}
               >
                 Save
               </button>

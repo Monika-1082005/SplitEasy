@@ -13,6 +13,9 @@ import {
 import { Doughnut, Line } from "react-chartjs-2";
 import pendingPayment from "../data/PendingPayment.json";
 import settledPayment from "../data/SettledPayment.json";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 ChartJS.register(
   CategoryScale,
@@ -24,11 +27,12 @@ ChartJS.register(
   Legend
 );
 
+  const apiUrl = import.meta.env.VITE_API_URL;
 // Function to format dates from "dd-mm-yyyy" to "yyyy-mm-dd"
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
   const [dd, mm, yyyy] = dateStr.split("-");
-  return `${yyyy}-${mm}-${dd}`; 
+  return `${yyyy}-${mm}-${dd}`;
 };
 
 // Extract and format dates for pending and settled payments
@@ -48,6 +52,29 @@ const allDates = [
 ].sort((a, b) => new Date(a) - new Date(b));
 
 const Dashboard = () => {
+  const [splitCount, setSplitCount] = useState(0);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      axios
+        .get(`${apiUrl}/user-split-count`, {
+          params: { userId },
+        })
+        .then((res) => {
+          if (res.data.success) {
+            setSplitCount(res.data.count);
+          } else {
+            toast.error("Failed to load split count", { autoClose: 2000 });
+          }
+        })
+        .catch((err) => {
+          console.error("Split count error:", err);
+          toast.error("Something went wrong", { autoClose: 2000 });
+        });
+    }
+  }, []);
+
   const lineChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -66,7 +93,7 @@ const Dashboard = () => {
   const cards = [
     {
       title: "Total Splits Created",
-      value: "100",
+      value: splitCount.toString(),
       icon: <FaClipboardList className="text-blue-500 text-3xl" />,
     },
     {
@@ -101,7 +128,7 @@ const Dashboard = () => {
           const found = settledData.find((d) => d.date === date);
           return found ? found.amount : 0;
         }),
-        borderColor: "rgba(20, 131, 235, 1)", 
+        borderColor: "rgba(20, 131, 235, 1)",
         backgroundColor: "rgba(20, 131, 235, 0.2)",
         tension: 0.4,
       },
@@ -117,7 +144,7 @@ const Dashboard = () => {
           pendingData.reduce((sum, item) => sum + item.amount, 0),
           settledData.reduce((sum, item) => sum + item.amount, 0),
         ],
-        backgroundColor: ["rgba(255, 99, 132, 0.8)", "rgba(20, 131, 235, 0.8)"], 
+        backgroundColor: ["rgba(255, 99, 132, 0.8)", "rgba(20, 131, 235, 0.8)"],
         borderColor: ["rgba(255, 99, 132, 1)", "rgba(20, 131, 235, 1)"],
       },
     ],

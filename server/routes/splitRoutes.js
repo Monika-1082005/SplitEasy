@@ -48,6 +48,24 @@ router.post('/splits', upload.single('image'), async (req, res) => {
   }
 });
 
+// GET /user-split-count?userId=123
+router.get("/user-split-count", async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    const count = await Split.countDocuments({ createdBy: userId });
+
+    return res.json({ success: true, count });
+  } catch (err) {
+    console.error("Error fetching split count:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 // GET /api/splits - Get all splits
 router.get('/splits', async (req, res) => {
   try {

@@ -7,13 +7,15 @@ const CLIENT_URL = process.env.CLIENT_URL;
 
 router.post("/create-group", async (req, res) => {
   try {
-    const { name, memberEmails = [], createdBy } = req.body;
+    const { name, createdBy } = req.body;
 
     // Just generate a token without saving group
     const inviteToken = uuidv4();
 
     // Prepare the link (just return it, don't persist anything)
-    const inviteLink = `${CLIENT_URL}/join-group?name=${encodeURIComponent(name)}&createdBy=${createdBy}&token=${inviteToken}`;
+    const inviteLink = `${CLIENT_URL}/join-group?name=${encodeURIComponent(
+      name
+    )}&createdBy=${createdBy}&token=${inviteToken}`;
 
     res.status(200).json({ inviteLink, inviteToken });
   } catch (err) {
@@ -26,8 +28,19 @@ router.post("/create", async (req, res) => {
   try {
     const { name, memberEmails = [], createdBy, inviteToken } = req.body;
 
+     if (!name || name.trim() === "") {
+      return res.status(400).json({ success: false, message: "Group name is required" });
+    }
+
     // Auto-generate inviteToken if it's not provided or is empty
-    const finalToken = inviteToken && inviteToken.trim() !== "" ? inviteToken : uuidv4();
+    let finalToken =
+      inviteToken && inviteToken.trim() !== "" ? inviteToken : uuidv4();
+
+    let tokenExists = await GroupModel.findOne({ inviteToken: finalToken });
+    if (tokenExists) {
+      // regenerate a new one if the provided token is already used
+      finalToken = uuidv4();
+    }
 
     const members = memberEmails
       .filter((email) => email.trim() !== "")
@@ -59,7 +72,7 @@ router.get("/details/:token", async (req, res) => {
   try {
     const group = await GroupModel.findOne({ inviteToken: token }).populate({
       path: "createdBy",
-      select: "username", 
+      select: "username",
     });
 
     if (!group) {
@@ -119,7 +132,6 @@ router.get("/join-group", async (req, res) => {
   }
 });
 
-
 router.get("/get-groups", async (req, res) => {
   const { createdBy } = req.query; // Get createdBy (userId) from query params
 
@@ -131,6 +143,5 @@ router.get("/get-groups", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to fetch groups" });
   }
 });
-
 
 module.exports = router;

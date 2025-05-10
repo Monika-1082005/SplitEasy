@@ -30,7 +30,8 @@ const groupSchema = new mongoose.Schema({
   inviteToken: {
     type: String,
     unique: true,
-    sparse: true,
+    required: true,  // make sure it's always present
+    sparse: false,
     validate: {
       validator: function (v) {
         // Prevent empty strings (""), allow undefined
