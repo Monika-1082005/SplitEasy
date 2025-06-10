@@ -20,6 +20,10 @@ const splitSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  currency: {
+    type: String,  // Store the selected currency as a string (e.g., "USD", "INR")
+    required: true  // Make sure to require this field
+  },
   amount: {
     type: Number,
     required: true
