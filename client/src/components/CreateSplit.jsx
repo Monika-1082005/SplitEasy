@@ -14,6 +14,10 @@ import splitMoney from "../assets/split_money.png";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Select from "react-select";
+import CurrencyInput from "react-currency-input-field";
+import currencyOptions from "../data/currencyOptions";
+import currencySymbols from "../data/currencySymbols";
 
 export default function CreateSplit() {
   const [showGroupModal, setShowGroupModal] = useState(false);
@@ -34,11 +38,18 @@ export default function CreateSplit() {
   const apiUrl = import.meta.env.VITE_API_URL;
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState("");
   const [notifyDays, setNotifyDays] = useState(0);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [fileName, setFileName] = useState("No file chosen");
   const fileInputRef = useRef(null);
+  const [individualAmounts, setIndividualAmounts] = useState({});
+  const selectedGroupObj = groups.find((g) => g._id === selectedGroup);
+  const groupMemberEmails = selectedGroupObj
+    ? selectedGroupObj.members.map((m) => m.email)
+    : [];
+  const [currency, setCurrency] = useState("");
 
   const resetSplitForm = () => {
     setTitle("");
@@ -49,6 +60,8 @@ export default function CreateSplit() {
     setFileName("No file chosen");
     setSelected(null);
     setSelectedGroup("");
+    setCurrency("INR");
+    setTitleError("");
     // Do NOT reset group or contacts here
   };
 
@@ -274,9 +287,33 @@ export default function CreateSplit() {
       return;
     }
 
+    // Title validation: Check if title is empty or only whitespace
+    if (!title.trim()) {
+      toast.error("Please enter a title for the split", {
+        autoClose: 2000,
+      });
+      return;
+    }
+
     // Validation: must select at least a group or contact
     if (!selectedGroup && (!selected || selected.length === 0)) {
       toast.error("You must select at least a group or a contact", {
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    // Currency validation: Check if currency is selected
+    if (!currency || currency === "") {
+      toast.error("Please select a currency for the split", {
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    // Amount validation: Check if amount is provided
+    if (!amount || amount <= 0) {
+      toast.error("Please enter a valid amount for the split", {
         autoClose: 2000,
       });
       return;
@@ -287,6 +324,7 @@ export default function CreateSplit() {
     formData.append("group", selectedGroup || "");
     formData.append("contacts", JSON.stringify(selected || []));
     formData.append("notifyDays", notifyDays);
+    formData.append("currency", currency);
     formData.append("amount", amount);
     formData.append("splitOption", splitOption);
     formData.append("description", description);
@@ -494,6 +532,9 @@ export default function CreateSplit() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
+              {titleError && (
+                <span className="text-red-500 text-sm">{titleError}</span>
+              )}
             </div>
 
             {/* Flex container for two options */}
@@ -569,13 +610,43 @@ export default function CreateSplit() {
 
             {/* Flex container for Divide Equally and Date */}
             <div className="flex space-x-4 mb-4 mt-4">
-              <input
-                type="number"
-                placeholder="Amount"
-                className="w-1/2 p-2 border border-gray-300 rounded-md"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <Select
+                  value={currencyOptions.find(
+                    (option) => option.value === currency
+                  )}
+                  options={currencyOptions}
+                  onChange={(selected) => setCurrency(selected.value)}
+                  placeholder="Select Currency"
+                  className="w-60"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      height: "41.5px", // Input field height
+                    }),
+                    option: (base) => ({
+                      ...base,
+                      fontFamily: "Roboto, sans-serif", // Apply font to options
+                      fontWeight: 700,
+                      fontSize:"16px"
+                      
+                    }),
+                    singleValue: (base) => ({
+                      ...base,
+                      fontFamily: "Roboto, sans-serif", // Apply custom font to the selected value (when an option is selected)
+                      fontWeight: 700,
+                      fontSize:"16px"
+                    }),
+                  }}
+                />
+                <CurrencyInput
+                  decimalsLimit={2}
+                  onValueChange={(value) => setAmount(value)}
+                  className="border border-gray-300 pl-2 py-2 px-2 rounded w-50 text-base"
+                  placeholder="Enter Amount"
+                />
+              </div>
+
               <select
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
                 value={splitOption}
@@ -585,6 +656,54 @@ export default function CreateSplit() {
                 <option value="individual">Assign Individual Amount</option>
               </select>
             </div>
+
+            {splitOption === "equally" && groupMemberEmails.length > 0 && (
+              <div className="mt-2">
+                <p className="font-semibold mb-2 text-[#1D214B]">
+                  Split Summary (Equally):
+                </p>
+                <ul className="list-disc ml-6 text-gray-700">
+                  {groupMemberEmails.map((email, index) => (
+                    <li key={index} className="text-md flex items-center">
+                      {email}:
+                      <span className="flex items-center">
+                        {currencySymbols[currency]}
+                        <span>
+                          {(amount / groupMemberEmails.length).toFixed(2)}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {splitOption === "individual" && groupMemberEmails.length > 0 && (
+              <div className="mt-2">
+                <p className="font-semibold mb-2 text-[#1D214B]">
+                  Assign Individual Amounts:
+                </p>
+                <div className="space-y-2">
+                  {groupMemberEmails.map((email, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <span className="w-1/3 text-gray-700">{email}</span>
+                      <input
+                        type="number"
+                        className="flex-1 p-2 border border-gray-300 rounded-md"
+                        placeholder="Enter amount"
+                        value={individualAmounts[email] || ""}
+                        onChange={(e) =>
+                          setIndividualAmounts((prev) => ({
+                            ...prev,
+                            [email]: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Flex container for Description and Add Image/Note */}
 
