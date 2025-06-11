@@ -1,59 +1,74 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const splitSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   group: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'groups',
-    required: false
+    ref: "groups",
+    required: false,
   },
   contacts: [
     {
       type: String,
-      required: false
-    }
+      required: false,
+    },
   ],
   notifyDays: {
     type: Number,
-    default: 0
+    default: 0,
   },
   currency: {
-    type: String,  // Store the selected currency as a string (e.g., "USD", "INR")
-    required: true  // Make sure to require this field
+    type: String, // Store the selected currency as a string (e.g., "USD", "INR")
+    required: true, // Make sure to require this field
   },
   amount: {
     type: Number,
-    required: true
+    required: true,
   },
   splitOption: {
     type: String,
-    enum: ['equally', 'individual'],
-    required: true
+    enum: ["equally", "individual"],
+    required: true,
   },
+  splitDetails: [
+    // Change from 'Map' to an Array of Objects
+    {
+      email: {
+        type: String,
+        required: true,
+      },
+      amount: {
+        type: Number,
+        required: true,
+      },
+    },
+  ],
   description: {
     type: String,
-    default: ''
+    default: "",
   },
   image: {
     type: String, // You can store the file path or base64 string
-    default: ''
+    default: "",
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'sign_up_forms',  // Assuming you have a 'User' model to track who created the split
-    required: true
-  }
+    ref: "sign_up_forms", // Assuming you have a 'User' model to track who created the split
+    required: true,
+  },
 });
 
 // Custom validation: Either group or contacts must be provided
-splitSchema.pre('validate', function (next) {
+splitSchema.pre("validate", function (next) {
   if (!this.group && (!this.contacts || this.contacts.length === 0)) {
-    return next(new Error('At least one of group or contacts must be selected.'));
+    return next(
+      new Error("At least one of group or contacts must be selected.")
+    );
   }
   next();
 });
 
-module.exports = mongoose.model('Split', splitSchema);
+module.exports = mongoose.model("Split", splitSchema);
