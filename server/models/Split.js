@@ -18,7 +18,9 @@ const splitSchema = new mongoose.Schema({
   ],
   notifyDays: {
     type: Number,
-    default: 0
+    min: [1, "Notify days must be at least 1"],
+    max: [31, "Notify days cannot exceed 31"],
+    required: false
   },
   currency: {
     type: String,  // Store the selected currency as a string (e.g., "USD", "INR")
@@ -45,7 +47,15 @@ const splitSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'sign_up_forms',  // Assuming you have a 'User' model to track who created the split
     required: true
-  }
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  lastNotified: {
+    type: Date,
+    default: null,  // to track last reminder date
+  },
 });
 
 // Custom validation: Either group or contacts must be provided
