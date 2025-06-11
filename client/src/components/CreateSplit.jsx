@@ -559,8 +559,16 @@ export default function CreateSplit() {
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
                 placeholder="Notify After (days)"
                 value={notifyDays}
-                onChange={(e) => setNotifyDays(e.target.value)}
-                min="0"
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1 && val <= 31) {
+                    setNotifyDays(val);
+                  } else {
+                    setNotifyDays(""); // or null
+                  }
+                }}
+                min="1"
+                max="31"
               />
             </div>
 
@@ -628,14 +636,13 @@ export default function CreateSplit() {
                       ...base,
                       fontFamily: "Roboto, sans-serif", // Apply font to options
                       fontWeight: 700,
-                      fontSize:"16px"
-                      
+                      fontSize: "16px",
                     }),
                     singleValue: (base) => ({
                       ...base,
                       fontFamily: "Roboto, sans-serif", // Apply custom font to the selected value (when an option is selected)
                       fontWeight: 700,
-                      fontSize:"16px"
+                      fontSize: "16px",
                     }),
                   }}
                 />
