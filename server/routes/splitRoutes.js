@@ -1,20 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
-const Split = require('../models/Split');
+const multer = require("multer");
+const Split = require("../models/Split");
 
 // Setup Multer for image uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
+  destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + '-' + file.originalname;
+    const uniqueName = Date.now() + "-" + file.originalname;
     cb(null, uniqueName);
-  }
+  },
 });
 const upload = multer({ storage });
-
 // POST /api/splits - Create a new split
-router.post('/splits', upload.single('image'), async (req, res) => {
+router.post("/splits", upload.single("image"), async (req, res) => {
   try {
     const {
       title,
@@ -25,10 +24,28 @@ router.post('/splits', upload.single('image'), async (req, res) => {
       amount,
       splitOption,
       description,
-      createdBy
+      createdBy,
+      splitDetails,
     } = req.body;
 
-    const image = req.file ? req.file.filename : '';
+    const image = req.file ? req.file.filename : "";
+
+    let parsedSplitDetails = {};
+        if (splitDetails && typeof splitDetails === "string") {
+            try {
+                parsedSplitDetails = JSON.parse(splitDetails);
+            } catch (parseError) {
+                console.error("Error parsing splitDetails JSON:", parseError);
+                return res.status(400).json({ error: "Invalid splitDetails format" });
+            }
+        } else if (typeof splitDetails === "object" && splitDetails !== null) {
+            parsedSplitDetails = splitDetails;
+        }
+
+      const transformedSplitDetails = Object.keys(parsedSplitDetails).map(email => ({
+            email: email,
+            amount: parsedSplitDetails[email]
+        }));
 
     // ✅ Validate notifyDays
     let parsedNotifyDays = undefined;
@@ -50,13 +67,15 @@ router.post('/splits', upload.single('image'), async (req, res) => {
       splitOption,
       description,
       image,
-      createdBy
+      createdBy,
+      splitDetails: transformedSplitDetails,
     });
 
     const savedSplit = await split.save();
     res.status(201).json(savedSplit);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error saving split:", err);  
+  res.status(400).json({ error: err.message || "Something went wrong" });
   }
 });
 
@@ -66,7 +85,9 @@ router.get("/user-split-count", async (req, res) => {
     const { userId } = req.query;
 
     if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
     }
 
     const count = await Split.countDocuments({ createdBy: userId });
@@ -79,34 +100,34 @@ router.get("/user-split-count", async (req, res) => {
 });
 
 // GET /api/splits - Get all splits
-router.get('/splits', async (req, res) => {
+router.get("/splits", async (req, res) => {
   try {
-    const splits = await Split.find().populate('group');
+    const splits = await Split.find().populate("group");
     res.json(splits);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch splits' });
+    res.status(500).json({ error: "Failed to fetch splits" });
   }
 });
 
 // GET /api/splits/group/:groupId - Get splits by group
-router.get('/splits/group/:groupId', async (req, res) => {
+router.get("/splits/group/:groupId", async (req, res) => {
   try {
     const { groupId } = req.params;
-    const splits = await Split.find({ group: groupId }).populate('group');
+    const splits = await Split.find({ group: groupId }).populate("group");
     res.json(splits);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch group splits' });
+    res.status(500).json({ error: "Failed to fetch group splits" });
   }
 });
 
 // GET /api/splits/:id - Get split by ID
-router.get('/splits/:id', async (req, res) => {
+router.get("/splits/:id", async (req, res) => {
   try {
-    const split = await Split.findById(req.params.id).populate('group');
-    if (!split) return res.status(404).json({ error: 'Split not found' });
+    const split = await Split.findById(req.params.id).populate("group");
+    if (!split) return res.status(404).json({ error: "Split not found" });
     res.json(split);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch split' });
+    res.status(500).json({ error: "Failed to fetch split" });
   }
 });
 

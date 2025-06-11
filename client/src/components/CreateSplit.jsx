@@ -57,6 +57,7 @@ export default function CreateSplit() {
     setAmount("");
     setSplitOption("equally");
     setDescription("");
+    setIndividualAmounts({});
     setFileName("No file chosen");
     setSelected(null);
     setSelectedGroup("");
@@ -312,11 +313,40 @@ export default function CreateSplit() {
     }
 
     // Amount validation: Check if amount is provided
-    if (!amount || amount <= 0) {
+    if (splitOption == "equally" && (!amount || amount <= 0)) {
       toast.error("Please enter a valid amount for the split", {
         autoClose: 2000,
       });
       return;
+    }
+
+    let splitDetails = {};
+    let totalAmount = 0;
+
+    if (splitOption === "equally") {
+      const perPersonAmount = (
+        parseFloat(amount) / groupMemberEmails.length
+      ).toFixed(2);
+      groupMemberEmails.forEach((email) => {
+        splitDetails[email] = parseFloat(perPersonAmount);
+      });
+      totalAmount = parseFloat(amount);
+    } else {
+      splitDetails = { ...individualAmounts };
+      totalAmount = Object.values(individualAmounts).reduce(
+        (sum, val) => sum + parseFloat(val || 0),
+        0
+      );
+
+      if (Object.keys(individualAmounts).length === 0 || totalAmount <= 0) {
+        toast.error(
+          "Please assign amounts to at least one person for individual split.",
+          {
+            autoClose: 2000,
+          }
+        );
+        return;
+      }
     }
 
     const formData = new FormData();
@@ -325,10 +355,11 @@ export default function CreateSplit() {
     formData.append("contacts", JSON.stringify(selected || []));
     formData.append("notifyDays", notifyDays);
     formData.append("currency", currency);
-    formData.append("amount", amount);
-    formData.append("splitOption", splitOption);
+    formData.append("amount", totalAmount);
     formData.append("description", description);
     formData.append("createdBy", userId);
+    formData.append("splitOption", splitOption);
+    formData.append("splitDetails", JSON.stringify(splitDetails));
 
     if (fileInputRef.current?.files[0]) {
       formData.append("image", fileInputRef.current.files[0]);
@@ -618,50 +649,71 @@ export default function CreateSplit() {
 
             {/* Flex container for Divide Equally and Date */}
             <div className="flex space-x-4 mb-4 mt-4">
-              <div className="flex gap-2">
-                <Select
-                  value={currencyOptions.find(
-                    (option) => option.value === currency
-                  )}
-                  options={currencyOptions}
-                  onChange={(selected) => setCurrency(selected.value)}
-                  placeholder="Select Currency"
-                  className="w-60"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      height: "41.5px", // Input field height
-                    }),
-                    option: (base) => ({
-                      ...base,
-                      fontFamily: "Roboto, sans-serif", // Apply font to options
-                      fontWeight: 700,
-                      fontSize: "16px",
-                    }),
-                    singleValue: (base) => ({
-                      ...base,
-                      fontFamily: "Roboto, sans-serif", // Apply custom font to the selected value (when an option is selected)
-                      fontWeight: 700,
-                      fontSize: "16px",
-                    }),
+              <div className="flex gap-4 w-full">
+                <div className="flex-1">
+                  <Select
+                    value={currencyOptions.find(
+                      (option) => option.value === currency
+                    )}
+                    options={currencyOptions}
+                    onChange={(selected) => setCurrency(selected.value)}
+                    placeholder="Select Currency"
+                    className="w-60"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        height: "41.5px", // Input field height
+                      }),
+                      option: (base) => ({
+                        ...base,
+                        fontFamily: "Roboto, sans-serif", // Apply font to options
+                        fontWeight: 700,
+                        fontSize: "16px",
+                      }),
+                      singleValue: (base) => ({
+                        ...base,
+                        fontFamily: "Roboto, sans-serif", // Apply custom font to the selected value (when an option is selected)
+                        fontWeight: 700,
+                        fontSize: "16px",
+                      }),
+                    }}
+                  />
+                </div>
+                <select
+                  className="w-1/2 p-2 border border-gray-300 rounded-md"
+                  value={splitOption}
+                  onChange={(e) => {
+                    const newSplitOption = e.target.value;
+                    setSplitOption(newSplitOption);
+                    // If the new split option is "individual", clear the amount field
+                    if (newSplitOption === "individual") {
+                      setAmount(""); // Set amount to empty string
+                    }
+                    // You might also want to clear individualAmounts if switching from individual to equally
+                    if (newSplitOption === "equally") {
+                      setIndividualAmounts({}); // Clear individual amounts if switching to equally
+                    }
                   }}
-                />
+                >
+                  <option value="equally">Divide Equally</option>
+                  <option value="individual" onClick={() => setAmount("")}>
+                    Assign Individual Amount
+                  </option>
+                </select>
+
                 <CurrencyInput
                   decimalsLimit={2}
+                  value={amount} 
                   onValueChange={(value) => setAmount(value)}
-                  className="border border-gray-300 pl-2 py-2 px-2 rounded w-50 text-base"
+                  className={`border pl-2 py-2 px-2 rounded w-50 text-base ${
+                    splitOption === "individual"
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "border-gray-300"
+                  }`}
                   placeholder="Enter Amount"
+                  disabled={splitOption === "individual"}
                 />
               </div>
-
-              <select
-                className="w-1/2 p-2 border border-gray-300 rounded-md"
-                value={splitOption}
-                onChange={(e) => setSplitOption(e.target.value)}
-              >
-                <option value="equally">Divide Equally</option>
-                <option value="individual">Assign Individual Amount</option>
-              </select>
             </div>
 
             {splitOption === "equally" && groupMemberEmails.length > 0 && (
@@ -673,7 +725,7 @@ export default function CreateSplit() {
                   {groupMemberEmails.map((email, index) => (
                     <li key={index} className="text-md flex items-center">
                       {email}:
-                      <span className="flex items-center">
+                      <span className="flex items-center mx-2">
                         {currencySymbols[currency]}
                         <span>
                           {(amount / groupMemberEmails.length).toFixed(2)}
