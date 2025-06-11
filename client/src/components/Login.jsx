@@ -92,7 +92,7 @@ export default function Login() {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-[url('../../src/assets/bg.png')] bg-cover">
+    <section className="min-h-screen flex items-center justify-center bg-[url('/bg.png')] bg-cover">
       <div className="flex shadow-2xl">
         {/* Left Side - Login Form */}
         <div className="flex flex-col items-center justify-center text-center w-[300px] px-8 py-7 sm:w-[450px] sm:p-14 gap-6 bg-[#1F3C9A] rounded-2xl text-white lg:rounded-tr-none lg:rounded-br-none lg:p-16">

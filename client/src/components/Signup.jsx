@@ -123,7 +123,7 @@ export default function Signup() {
   };
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-[url('../../src/assets/bg.png')] bg-cover">
+    <section className="min-h-screen flex items-center justify-center bg-[url('/bg.png')] bg-cover">
       <div className="flex shadow-2xl">
         {/* Left Side - Sign Up Form */}
         <div className="flex flex-col items-center justify-center text-center w-[300px] px-8 py-4 sm:w-[450px] sm:py-10 gap-3 bg-[#1F3C9A] rounded-2xl text-white lg:rounded-tr-none lg:rounded-br-none lg:px-16">
