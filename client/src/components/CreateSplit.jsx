@@ -723,7 +723,7 @@ export default function CreateSplit() {
                 </p>
                 <ul className="list-disc ml-6 text-gray-700">
                   {groupMemberEmails.map((email, index) => (
-                    <li key={index} className="text-md flex items-center">
+                    <li key={index} className="text-md flex items-center  my-2">
                       {email}:
                       <span className="flex items-center mx-2">
                         {currencySymbols[currency]}
@@ -748,7 +748,7 @@ export default function CreateSplit() {
                       <span className="w-1/3 text-gray-700">{email}</span>
                       <input
                         type="number"
-                        className="flex-1 p-2 border border-gray-300 rounded-md"
+                        className="flex-1 p-2 border border-gray-300 rounded-md my-2"
                         placeholder="Enter amount"
                         value={individualAmounts[email] || ""}
                         onChange={(e) =>
