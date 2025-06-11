@@ -34,7 +34,10 @@ app.use(passport.session());
 
 // MongoDB Connection
 mongoose.connect("mongodb://localhost:27017/users")
-  .then(() => console.log("MongoDB connected"))
+  .then(() => {
+    console.log("MongoDB connected")
+    require("./scheduler/sendReminders");
+  })
   .catch(err => console.log("MongoDB connection error:", err));
 
 // Passport Google OAuth

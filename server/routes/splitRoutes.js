@@ -47,6 +47,16 @@ router.post("/splits", upload.single("image"), async (req, res) => {
             amount: parsedSplitDetails[email]
         }));
 
+    // ✅ Validate notifyDays
+    let parsedNotifyDays = undefined;
+    if (notifyDays !== undefined && notifyDays !== "") {
+      const numDays = Number(notifyDays);
+      if (isNaN(numDays) || numDays < 1 || numDays > 31) {
+        return res.status(400).json({ error: "Notify days must be a number between 1 and 31, or left blank." });
+      }
+      parsedNotifyDays = numDays;
+    }
+
     const split = new Split({
       title,
       group: group || null,

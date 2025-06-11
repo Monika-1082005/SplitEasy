@@ -590,8 +590,16 @@ export default function CreateSplit() {
                 className="w-1/2 p-2 border border-gray-300 rounded-md"
                 placeholder="Notify After (days)"
                 value={notifyDays}
-                onChange={(e) => setNotifyDays(e.target.value)}
-                min="0"
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val >= 1 && val <= 31) {
+                    setNotifyDays(val);
+                  } else {
+                    setNotifyDays(""); // or null
+                  }
+                }}
+                min="1"
+                max="31"
               />
             </div>
 
