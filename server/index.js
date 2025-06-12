@@ -15,7 +15,6 @@ const splitRoutes = require("./routes/splitRoutes")
 const app = express();
 
 // Middleware
-const CLIENT_URL = process.env.CLIENT_URL;
 app.use(express.json());
 app.use(cors({
   origin: process.env.CLIENT_URL,
@@ -34,11 +33,8 @@ app.use(passport.session());
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
 })  .then(() => {
     console.log("MongoDB connected")
-    require("./scheduler/sendReminders");
   })
   .catch(err => console.log("MongoDB connection error:", err));
 

@@ -38,6 +38,7 @@ function App() {
                 {sidebarItems.map((item) => (
                   <SidebarItem
                     key={item.path}
+                    path={item.path}
                     icon={<item.icon size={20} />}
                     text={item.text}
                     active={item.active}

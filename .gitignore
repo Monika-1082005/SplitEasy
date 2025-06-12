@@ -15,6 +15,9 @@ server/.vscode/
 server/.idea/
 server/uploads/
 
+#Cron-job specific
+cron-worker/node_modules
+cron-worker/.env
 # Logs
 logs
 *.log
