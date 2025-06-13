@@ -1,54 +1,36 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const path = require('path');
+const path = require("path");
+require("./models/Users"); 
 
 dotenv.config();
 
-let cronJobsStarted = false;
-let sendRemindersModule;
+const run = async () => {
+  try {
+    console.log("Connecting to MongoDB...");
+    await mongoose.connect(process.env.MONGO_URI);
 
-let SplitModel;
-let GroupModel;
+    console.log("✅ Mongoose connected.");
 
-mongoose.connection.on('connected', () => {
-    console.log("✅ Mongoose connected to:", process.env.MONGO_URI);
+    const SplitModel = require(path.join(__dirname, "./models/Split"));
+    const GroupModel = require(path.join(__dirname, "./models/Group"));
+    const { sendRecurringReminders } = require("./sendReminders");
 
-    if (!cronJobsStarted) {
-        setTimeout(() => {
-            try {
-                SplitModel = require(path.join(__dirname, './models/Split'));
-                GroupModel = require(path.join(__dirname, './models/Group'));
-                console.log("✅ All models loaded in index.js after Mongoose connection and delay.");
+    // Inject models and run reminder logic
+    global.SplitModel = SplitModel;
+    global.GroupModel = GroupModel;
 
-                sendRemindersModule = require("./sendReminders");
-                sendRemindersModule.startCronJobs(SplitModel, GroupModel);
-                cronJobsStarted = true;
-            } catch (error) {
-                console.error("❌ Error loading models or starting cron jobs:", error);
-                process.exit(1);
-            }
-        }, 200);
-    }
-});
+    await sendRecurringReminders(SplitModel, GroupModel);
 
-mongoose.connection.on('error', (err) => {
-    console.error("❌ Mongoose connection error:", err);
+
+    // Clean up
+    await mongoose.connection.close();
+    console.log("✅ Script finished and MongoDB connection closed.");
+    process.exit(0);
+  } catch (err) {
+    console.error("💥 Error in cron job:", err);
     process.exit(1);
-});
+  }
+};
 
-mongoose.connection.on('disconnected', () => {
-    console.warn("⚠️ Mongoose disconnected");
-});
-
-async function initiateMongoConnection() {
-    try {
-        console.log("Attempting to connect to MongoDB...");
-        await mongoose.connect(process.env.MONGO_URI, {
-        });
-    } catch (err) {
-        console.error("❌ MongoDB connection failed (cron-worker) during initial attempt:", err);
-        process.exit(1);
-    }
-}
-
-initiateMongoConnection();
+run();
