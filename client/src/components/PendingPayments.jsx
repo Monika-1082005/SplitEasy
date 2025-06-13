@@ -360,7 +360,7 @@ const PendingPayments = () => {
                         </span>
                       ) : (
                         <button
-                          className="ml-2 px-2 py-1 text-xs m-1 bg-[#c5d5e8] text-[#1D214B] rounded-sm"
+                          className="ml-2 px-2 py-1 text-xs m-1 bg-[#c5d5e8] text-[#1D214B] rounded-sm cursor-pointer"
                           onClick={() =>
                             handleToggleMemberPaidStatus(
                               split._id,
