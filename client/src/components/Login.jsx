@@ -66,10 +66,11 @@ export default function Login() {
     axios
       .post(`${apiUrl}/login`, { email, password })
       .then((result) => {
-        const { userId, message } = result.data;
+        const { userId, userEmail, message } = result.data;
 
         if (message === "Login successful") {
           localStorage.setItem("userId", userId);
+          localStorage.setItem("userEmail", userEmail);
           navigate("/dashboard");
         } else {
           toast.error(message || "Login failed");

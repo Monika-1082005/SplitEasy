@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const Split = require("../models/Split");
+const Group = require("../models/Group");
 
 // Setup Multer for image uploads
 const storage = multer.diskStorage({
@@ -31,28 +32,33 @@ router.post("/splits", upload.single("image"), async (req, res) => {
     const image = req.file ? req.file.filename : "";
 
     let parsedSplitDetails = {};
-        if (splitDetails && typeof splitDetails === "string") {
-            try {
-                parsedSplitDetails = JSON.parse(splitDetails);
-            } catch (parseError) {
-                console.error("Error parsing splitDetails JSON:", parseError);
-                return res.status(400).json({ error: "Invalid splitDetails format" });
-            }
-        } else if (typeof splitDetails === "object" && splitDetails !== null) {
-            parsedSplitDetails = splitDetails;
-        }
+    if (splitDetails && typeof splitDetails === "string") {
+      try {
+        parsedSplitDetails = JSON.parse(splitDetails);
+      } catch (parseError) {
+        console.error("Error parsing splitDetails JSON:", parseError);
+        return res.status(400).json({ error: "Invalid splitDetails format" });
+      }
+    } else if (typeof splitDetails === "object" && splitDetails !== null) {
+      parsedSplitDetails = splitDetails;
+    }
 
-      const transformedSplitDetails = Object.keys(parsedSplitDetails).map(email => ({
-            email: email,
-            amount: parsedSplitDetails[email]
-        }));
+    const transformedSplitDetails = Object.keys(parsedSplitDetails).map(
+      (email) => ({
+        email: email,
+        amount: parsedSplitDetails[email],
+      })
+    );
 
     // ✅ Validate notifyDays
     let parsedNotifyDays = undefined;
     if (notifyDays !== undefined && notifyDays !== "") {
       const numDays = Number(notifyDays);
       if (isNaN(numDays) || numDays < 1 || numDays > 31) {
-        return res.status(400).json({ error: "Notify days must be a number between 1 and 31, or left blank." });
+        return res.status(400).json({
+          error:
+            "Notify days must be a number between 1 and 31, or left blank.",
+        });
       }
       parsedNotifyDays = numDays;
     }
@@ -74,8 +80,8 @@ router.post("/splits", upload.single("image"), async (req, res) => {
     const savedSplit = await split.save();
     res.status(201).json(savedSplit);
   } catch (err) {
-    console.error("Error saving split:", err);  
-  res.status(400).json({ error: err.message || "Something went wrong" });
+    console.error("Error saving split:", err);
+    res.status(400).json({ error: err.message || "Something went wrong" });
   }
 });
 
@@ -99,12 +105,31 @@ router.get("/user-split-count", async (req, res) => {
   }
 });
 
+
 // GET /api/splits - Get all splits
 router.get("/splits", async (req, res) => {
   try {
-    const splits = await Split.find().populate("group");
+    const { userId, userEmail } = req.query; // <-- Still expects userEmail here
+
+    if (!userId || !userEmail) {
+      // <-- Still checks for userEmail here
+      return res
+        .status(400)
+        .json({ message: "User ID and User Email are required." });
+    }
+
+    const splits = await Split.find({
+      $or: [
+        { createdBy: userId },
+        { "splitDetails.email": userEmail }, // <-- Uses userEmail here
+      ],
+    })
+      .populate("group")
+      .populate("createdBy", "username email");
+
     res.json(splits);
   } catch (err) {
+    console.error("Error fetching splits:", err);
     res.status(500).json({ error: "Failed to fetch splits" });
   }
 });
@@ -130,5 +155,147 @@ router.get("/splits/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch split" });
   }
 });
+
+router.patch("/splits/:splitId/mark-member-paid", async (req, res) => {
+  try {
+    const { splitId } = req.params;
+    const { memberEmail } = req.body;
+
+    if (!memberEmail) {
+      return res.status(400).json({ message: "Member email is required." });
+    }
+
+    const split = await Split.findById(splitId);
+    if (!split) {
+      return res.status(404).json({ message: "Split not found." });
+    }
+
+    if (!Array.isArray(split.splitDetails)) {
+      console.error(`ERROR: splitDetails is not an array for split ID: ${split._id}`);
+      return res.status(500).json({ error: "Internal server error: splitDetails is malformed." });
+    }
+
+    const memberDebt = split.splitDetails.find(detail => detail.email === memberEmail);
+    if (!memberDebt) {
+      return res.status(404).json({ message: "Member not found in split details." });
+    }
+
+    if (memberDebt.isPaid) {
+      return res.status(400).json({ message: "This member's debt is already marked as paid." });
+    }
+
+    memberDebt.isPaid = true;
+    memberDebt.paidAt = new Date();
+
+    const allMembersPaid = split.splitDetails.every(detail => detail.isPaid);
+    if (allMembersPaid) {
+      split.status = "paid";
+    }
+
+    await split.save();
+    res.json({
+      message: `Member ${memberEmail} debt marked as paid!`,
+      split: split,
+      allMembersPaid: allMembersPaid,
+    });
+  } catch (err) {
+    console.error("Critical Error marking member debt as paid:", err);
+    res.status(500).json({ error: "Failed to mark member debt as paid." });
+  }
+});
+
+
+router.patch("/splits/:splitId/mark-split-complete", async (req, res) => {
+  try {
+    const { splitId } = req.params;
+
+    const split = await Split.findById(splitId);
+    if (!split) {
+      return res.status(404).json({ message: "Split not found." });
+    }
+
+    if (split.status === "paid") {
+      return res.status(200).json({
+        message: `Split ${splitId} is already marked as paid. No change made.`,
+        split: split,
+      });
+    }
+
+    split.status = "paid";
+    split.splitDetails.forEach((detail) => {
+      if (!detail.isPaid) {
+        detail.isPaid = true;
+        detail.paidAt = new Date();
+      }
+    });
+
+    await split.save();
+    res.json({
+      message: `Split ${splitId} successfully marked as paid! All individual debts within it are now settled.`,
+      split: split,
+    });
+  } catch (err) {
+    console.error("Critical Error marking overall split as paid:", err);
+    res.status(500).json({ error: "Failed to mark overall split as paid." });
+  }
+});
+
+
+router.patch("/splits/:splitId/update-member-payment-status", async (req, res) => {
+  try {
+    const { splitId } = req.params;
+    const { memberEmail, isPaid } = req.body;
+
+    if (!memberEmail || typeof isPaid !== "boolean") {
+      return res.status(400).json({
+        message: "Member email and a valid boolean isPaid status are required.",
+      });
+    }
+
+    const split = await Split.findById(splitId).populate("group");
+    if (!split) {
+      return res.status(404).json({ message: "Split not found." });
+    }
+
+    if (!Array.isArray(split.splitDetails)) {
+      console.error(`ERROR: splitDetails is not an array for split ID: ${split._id}`);
+      return res.status(500).json({ error: "Internal server error: splitDetails is malformed." });
+    }
+
+    const memberDebt = split.splitDetails.find(detail => detail.email === memberEmail);
+    if (!memberDebt) {
+      return res.status(404).json({ message: "Member not found in split details." });
+    }
+
+    if (memberDebt.isPaid === isPaid) {
+      return res.status(200).json({
+        message: `Member ${memberEmail} debt is already ${isPaid ? "marked as paid" : "marked as unpaid"}. No change made.`,
+        split: split,
+        allMembersPaid: split.splitDetails.every(detail => detail.isPaid),
+      });
+    }
+
+    memberDebt.isPaid = isPaid;
+    memberDebt.paidAt = isPaid ? new Date() : null;
+
+    const allMembersPaid = split.splitDetails.every(detail => detail.isPaid);
+    if (allMembersPaid) {
+      split.status = "paid";
+    } else if (split.status === "paid") {
+      split.status = "pending";
+    }
+
+    await split.save();
+    res.json({
+      message: `Member ${memberEmail} debt marked as ${isPaid ? "paid" : "unpaid"}!`,
+      split: split,
+      allMembersPaid: allMembersPaid,
+    });
+  } catch (err) {
+    console.error("Critical Error updating member debt status:", err);
+    res.status(500).json({ error: "Failed to update member debt status." });
+  }
+});
+
 
 module.exports = router;
