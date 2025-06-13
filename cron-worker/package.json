@@ -1,13 +1,23 @@
 {
   "name": "cron-worker",
   "version": "1.0.0",
-  "description": "",
+  "description": "Worker script to send recurring split reminders via email.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "cron",
+    "reminder",
+    "email",
+    "splitwise",
+    "GitHub Actions"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
