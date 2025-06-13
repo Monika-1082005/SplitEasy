@@ -13,7 +13,7 @@ import {
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
-const apiUrl = "http://localhost:3001";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const statusIcons = {
   Overdue: (
