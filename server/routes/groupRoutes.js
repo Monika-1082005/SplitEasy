@@ -28,8 +28,10 @@ router.post("/create", async (req, res) => {
   try {
     const { name, memberEmails = [], createdBy, inviteToken } = req.body;
 
-     if (!name || name.trim() === "") {
-      return res.status(400).json({ success: false, message: "Group name is required" });
+    if (!name || name.trim() === "") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Group name is required" });
     }
 
     // Auto-generate inviteToken if it's not provided or is empty
@@ -56,7 +58,7 @@ router.post("/create", async (req, res) => {
       members,
       inviteToken: finalToken, // Use the finalToken here
     });
-
+    console.log("Saving group:", group);
     await group.save();
     res.status(201).json({ success: true, group });
   } catch (err) {
@@ -133,10 +135,14 @@ router.get("/join-group", async (req, res) => {
 });
 
 router.get("/get-groups", async (req, res) => {
-  const { createdBy } = req.query; // Get createdBy (userId) from query params
+  const { createdBy } = req.query;
 
   try {
-    const groups = await GroupModel.find({ createdBy }); // Fetch groups where createdBy matches userId
+    const groups = await GroupModel.find({ createdBy }).populate(
+      "createdBy",
+      "username"
+    ); 
+
     res.status(200).json({ success: true, groups });
   } catch (err) {
     console.error("Error fetching groups:", err);

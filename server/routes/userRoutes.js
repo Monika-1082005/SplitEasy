@@ -69,7 +69,9 @@ router.post("/login", (req, res) => {
       if (!user.isVerified) return res.status(403).json({ message: "Please verify your email before logging in." });
       if (user.password !== password) return res.status(401).json({ error: "Incorrect password" });
 
-      res.json({ message: "Login successful",  userId: user._id,  });
+      res.json({ message: "Login successful",  userId: user._id,
+      userEmail: user.email
+        });
     })
     .catch(err => {
       console.error("Error during login:", err);
