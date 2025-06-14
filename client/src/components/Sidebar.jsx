@@ -1,28 +1,69 @@
 import PropTypes from "prop-types";
 import { MoreVertical } from "lucide-react";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import sidebarLogo from "../assets/logo_with_text.png";
 import sidebarItems from "../data/sidebarItems";
+import { useLocation } from "react-router-dom";
+
 
 const SidebarContext = createContext();
 
 export default function Sidebar({ expanded }) {
-  const [activeItem, setActiveItem] = useState("/"); // Ensure active state is defined
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const [username, setUsername] = useState("User");
+  const [email, setEmail] = useState(";");
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+
+      try {
+        const res = await fetch(`${apiUrl}/users/${userId}`);
+        const { username, email } = await res.json();
+        if (res.ok) {
+          setUsername(username || "User");
+          setEmail(email);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUsername();
+  }, [apiUrl]);
+
+  function getInitials(name = "") {
+    const words = name.trim().split(" ");
+    if (words.length >= 2) {
+      return words[0][0] + words[1][0]; // First letter of first 2 words
+    } else if (words.length === 1 && words[0].length >= 2) {
+      return words[0][0] + words[0][1]; // First 2 letters
+    }
+    return name[0] || ""; // fallback
+  }
 
   return (
-    <aside>
+    <div className="min-h-screen flex">
+    <aside  className="w-fit">
       <nav className="h-full w-fit flex flex-col bg-white border-r shadow-sm transition-all duration-300">
-        <div className={`p-4 flex justify-between items-center relative ${expanded ? "pb-4" : "pb-10"}`}>
+        <div
+          className={`p-4 flex justify-between items-center relative ${
+            expanded ? "pb-4" : "pb-10"
+          }`}
+        >
           <img
             src={sidebarLogo}
             alt="Logo"
-            className={`overflow-hidden transition-all ${expanded ? "w-32" : "w-0"}`}
+            className={`overflow-hidden transition-all ${
+              expanded ? "w-32" : "w-0"
+            }`}
           />
         </div>
 
-        {/* Provide activeItem and setActiveItem in context */}
-        <SidebarContext.Provider value={{ expanded, activeItem, setActiveItem }}>
+       <SidebarContext.Provider value={{ expanded }}>
+
           <ul className="flex-1 px-3 py-4">
             {sidebarItems.map((item, index) => (
               <div key={index}>
@@ -40,20 +81,27 @@ export default function Sidebar({ expanded }) {
 
         <div className="border-t p-3 flex">
           <img
-            src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
+            src={`https://ui-avatars.com/api/?name=${getInitials(
+              username
+            )}&background=c7d2fe&color=3730a3&bold=true`}
             alt="User"
             className="w-10 h-10 rounded-md"
           />
-          <div className={`flex justify-between items-center overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>
+          <div
+            className={`flex justify-between items-center overflow-hidden transition-all ${
+              expanded ? "w-52 ml-3" : "w-0"
+            }`}
+          >
             <div className="leading-4">
-              <h4 className="font-semibold">John Doe</h4>
-              <span className="text-xs text-gray-600">johndoe@gmail.com</span>
+              <h4 className="font-semibold">{username}</h4>
+              <span className="text-xs text-gray-600">{email}</span>
             </div>
             <MoreVertical size={20} />
           </div>
         </div>
       </nav>
     </aside>
+    </div>
   );
 }
 
@@ -62,22 +110,30 @@ Sidebar.propTypes = {
 };
 
 export function SidebarItem({ icon, text, alert, path }) {
-  const { expanded, activeItem, setActiveItem } = useContext(SidebarContext);
+  const { expanded } = useContext(SidebarContext);
+  const location = useLocation();
+  const isActive = location.pathname === path;
 
   return (
-    <Link to={path} onClick={() => setActiveItem(path)} className="block">
+    <Link to={path}  className="block">
       <li
         className={`group relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors ${
-          activeItem === path
-            ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-            : "hover:bg-indigo-50 text-gray-600"
+          isActive
+            ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800 z-100"
+            : "hover:bg-indigo-50 text-gray-600 z-100"
         }`}
       >
         {icon}
-        <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}>
+        <span
+          className={`overflow-hidden transition-all ${
+            expanded ? "w-52 ml-3" : "w-0"
+          }`}
+        >
           {text}
         </span>
-        {alert && <div className="absolute right-2 w-2 h-2 rounded bg-indigo-400" />}
+        {alert && (
+          <div className="absolute right-2 w-2 h-2 rounded bg-indigo-400" />
+        )}
         {!expanded && (
           <div
             className="absolute left-full rounded-md px-2 py-1 ml-6 bg-indigo-100 text-indigo-800 text-sm 
@@ -98,4 +154,3 @@ SidebarItem.propTypes = {
   alert: PropTypes.bool,
   path: PropTypes.string.isRequired,
 };
-

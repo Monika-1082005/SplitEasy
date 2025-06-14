@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 export default function LandingPageNavbar(){
   const navigate = useNavigate();
     return (
-          <nav className="flex justify-between items-center w-full px-3 py-1 md:px-6 md:py-1.5 bg-white shadow-md">
+          <nav className="flex justify-between items-center w-full px-3 py-1 md:px-6 md:py-1.5 bg-white shadow-[0_5px_10px_rgba(0,0,0,0.14)]">
             {/* Left Section */}
             <div className="flex items-center gap-3 ">
               <img src={logo} alt="website-logo" className="h-10 w-10 md:h-20 md:w-20" />

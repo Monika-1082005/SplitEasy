@@ -33,7 +33,7 @@ function App() {
         <Route 
           path="/*" 
           element={
-            <main className="flex h-screen">
+            <main className="flex">
               <Sidebar expanded={isExpanded}>
                 {sidebarItems.map((item) => (
                   <SidebarItem
