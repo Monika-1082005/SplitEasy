@@ -20,7 +20,7 @@ const splitSchema = new mongoose.Schema({
     type: Number,
     min: [1, "Notify days must be at least 1"],
     max: [31, "Notify days cannot exceed 31"],
-    required: false
+    required: false,
   },
   currency: {
     type: String, // Store the selected currency as a string (e.g., "USD", "INR")
@@ -46,6 +46,13 @@ const splitSchema = new mongoose.Schema({
         type: Number,
         required: true,
       },
+      isPaid: {
+        type: Boolean,
+        default: false,
+      },
+      paidAt: {
+        type: Date,
+      },
     },
   ],
   description: {
@@ -58,8 +65,8 @@ const splitSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'sign_up_forms',  // Assuming you have a 'User' model to track who created the split
-    required: true
+    ref: "sign_up_forms", 
+    required: true,
   },
   createdAt: {
     type: Date,
@@ -67,7 +74,13 @@ const splitSchema = new mongoose.Schema({
   },
   lastNotified: {
     type: Date,
-    default: null,  // to track last reminder date
+    default: null, // to track last reminder date
+  },
+  status: {
+    type: String,
+    enum: ["pending", "paid", "due soon"], // Define possible statuses
+    default: "pending", 
+    required: true,
   },
 });
 
