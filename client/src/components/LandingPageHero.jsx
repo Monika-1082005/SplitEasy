@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function LandingPageHero() {
   const [userCount, setUserCount] = useState(null);
   const apiUrl = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetch(`${apiUrl}/user-count`) // replace with your actual endpoint
-      .then((res) => res.json())
-      .then((data) => setUserCount(data.count))
-      .catch((err) => {
-        console.error("Failed to fetch user count:", err);
+    axios.get(`${apiUrl}/user-count`)
+      .then((response) => {
+        setUserCount(response.data.count);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch user count:", error);
         setUserCount(50000); // fallback if API fails
       });
   }, [apiUrl]);
