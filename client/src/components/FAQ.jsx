@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
+import { motion, AnimatePresence } from "framer-motion";
 
 const faqData = [
   {
@@ -42,19 +43,27 @@ export default function FAQ() {
     setActiveIndex(activeIndex == index ? null : index);
   };
   return (
-    <div id="faq" className="px-5 py-3 md:py-10 min-h-screen shadow-[0_-5px_10px_rgba(0,0,0,0.1)] flex flex-col justify-center items-center
-">
+    <div
+      id="faq"
+      className="px-5 py-3 md:py-10 min-h-screen shadow-[0_-5px_10px_rgba(0,0,0,0.1)] flex flex-col justify-center items-center
+"
+    >
       <div className="flex justify-center p-4 text-lg md:text-3xl">
         Frequently Asked Questions (FAQ)
       </div>
       <div className=" w-full md:max-w-3xl mx-auto m-5 space-y-4">
         {faqData.map((item, index) => (
-          <div
+          <motion.div
             key={index}
-            className="p-2 md:p-4 bg-white cursor-pointer border rounded-xl shadow-md"
-            onClick={() => toggleAccordion(index)}
+            className="p-2 md:p-4 bg-white  border rounded-xl shadow-md"
+            initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1.5 }}
           >
-            <div className="flex justify-between items-center">
+            <button
+              onClick={() => toggleAccordion(index)}
+              className="w-full flex justify-between items-center text-left cursor-pointer"
+            >
               <h3 className="text-sm md:text-lg font-semibold text-[#1d214b] ">
                 {item.question}
               </h3>
@@ -63,15 +72,24 @@ export default function FAQ() {
                   activeIndex === index ? "rotate-180" : "rotate-0"
                 }`}
               >
-                <FontAwesomeIcon icon={faAngleDown} />
+                <FontAwesomeIcon icon={faAngleDown} className="cursor-pointer" />
               </span>
-            </div>
-            {activeIndex === index && (
-              <p className="mt-2 text-[#1F3C9A] text-xs md:text-md max-h-28 md:max-h-full overflow-auto md:text-md">
-                {item.answer}
-              </p>
-            )}
-          </div>
+            </button>
+            <AnimatePresence initial={false}>
+              {activeIndex === index && (
+                <motion.div
+                  key="content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden text-[#1F3C9A] text-sm sm:text-base md:text-lg mt-2 leading-relaxed"
+                >
+                  <p>{item.answer}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         ))}
       </div>
     </div>
