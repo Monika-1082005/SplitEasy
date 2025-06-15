@@ -3,7 +3,7 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LandingPage from "./components/LandingPage";
 import Dashboard from "./components/Dashboard";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import HomeNavbar from "./components/HomeNavbar";
 import CreateSplit from "./components/CreateSplit";
@@ -17,7 +17,21 @@ import './App.css';
 
 
 function App() {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(() => window.innerWidth >= 768);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsExpanded(false);
+      } else {
+        setIsExpanded(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <Router>

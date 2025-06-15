@@ -3,10 +3,10 @@ import { FaGithub } from "react-icons/fa";
 export default function Footer() {
   return (
     <footer
-      className="bg-white
+      className="bg-[#9DC3ED]
                  shadow-[0_-5px_10px_rgba(0,0,0,0.14)]
                  text-[#1D214B]
-                 py-14 px-6"
+                 py-14 px-6 "
     >
       <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12 items-start">
         {/* Brand Info */}
