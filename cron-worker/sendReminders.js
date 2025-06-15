@@ -50,8 +50,8 @@ const sendRecurringReminders = async (SplitModel, GroupModel) => {
             console.log(`  - daysSinceLastNotify: ${daysSinceLastNotify.toFixed(2)}`);
             console.log(`  - Condition: ${daysSinceLastNotify.toFixed(2)} >= ${notifyDays} -> ${daysSinceLastNotify >= notifyDays}`);
 
-            // if (daysSinceLastNotify >= notifyDays) {
-            if (true) {
+            if (Math.floor(daysSinceLastNotify) >= notifyDays) {
+            // if (true) {
                 let emailsToNotify = [];
 
                 if (split.contacts && split.contacts.length > 0) {
