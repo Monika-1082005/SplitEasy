@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import currencySymbols from "../data/currencySymbols";
+import PropTypes from "prop-types";
 import {
-  faIndianRupeeSign,
   faExclamationTriangle,
   faClock,
   faSearch,
@@ -29,7 +30,10 @@ const PendingPayments = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState(""); // Corrected: should be useState("")
+  const [filterStatus, setFilterStatus] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedSplitId, setSelectedSplitId] = useState(null);
+  const [selectedSplitTitle, setSelectedSplitTitle] = useState("");
 
   const currentUserId = localStorage.getItem("userId");
   const currentUserEmail = localStorage.getItem("userEmail");
@@ -38,26 +42,36 @@ const PendingPayments = () => {
     setLoading(true);
     setError(null);
     try {
-      if (!currentUserId || !currentUserEmail) {
-        console.error("User details missing in localStorage:", {
-          currentUserId,
-          currentUserEmail,
-        });
-        setError("User not logged in or user details missing. Please log in.");
+      const currentUserId = localStorage.getItem("userId");
+      if (!currentUserId) {
+        console.error(
+          "User ID not found in localStorage. Cannot fetch creator's splits."
+        );
+        setError("User not logged in. Please log in.");
         setLoading(false);
         return;
       }
+
       const response = await axios.get(
-        `${apiUrl}/splits?userId=${currentUserId}&userEmail=${currentUserEmail}`
+        `${apiUrl}/splits?userId=${currentUserId}`
       );
-      setSplits(response.data);
+      if (Array.isArray(response.data)) {
+        setSplits(response.data);
+      } else {
+        console.warn(
+          "API response for splits was not an array:",
+          response.data
+        );
+        setSplits([]);
+        setError("Received unexpected data format from server.");
+      }
     } catch (err) {
       console.error("Error fetching splits:", err);
       setError("Failed to load pending payments.");
     } finally {
       setLoading(false);
     }
-  }, [currentUserId, currentUserEmail]);
+  }, []);
 
   useEffect(() => {
     fetchSplits();
@@ -113,21 +127,52 @@ const PendingPayments = () => {
     }
   };
 
-  const handleMarkSplitAsComplete = async (splitId, splitTitle) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to mark the entire split "${splitTitle}" as paid? This will mark all individual debts within it as paid too.`
-      )
-    ) {
-      return;
-    }
+  const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
+    return (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-auto text-center">
+          <p className="text-lg font-semibold mb-4 text-[#1D214B]">{message}</p>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={onConfirm}
+              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            >
+              Confirm
+            </button>
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
+  ConfirmationModal.propTypes = {
+    message: PropTypes.string.isRequired,
+    onConfirm: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+  };
+
+  const initiateMarkSplitAsComplete = (splitId, splitTitle) => {
+    setSelectedSplitId(splitId);
+    setSelectedSplitTitle(splitTitle);
+    setShowModal(true);
+  };
+
+  const confirmMarkSplitAsComplete = async () => {
+    setShowModal(false);
     try {
       const response = await axios.patch(
-        `${apiUrl}/splits/${splitId}/mark-split-complete`
+        `${apiUrl}/splits/${selectedSplitId}/mark-split-complete`
       );
       fetchSplits();
-      console.log(response.data.message);
+      toast.success(
+        response.data.message || "Split successfully marked as complete!"
+      );
     } catch (err) {
       console.error("Error marking split as complete:", err);
       toast.error(
@@ -135,7 +180,16 @@ const PendingPayments = () => {
           err.response?.data?.message || err.message
         }`
       );
+    } finally {
+      setSelectedSplitId(null);
+      setSelectedSplitTitle("");
     }
+  };
+
+  const cancelMarkSplitAsComplete = () => {
+    setShowModal(false);
+    setSelectedSplitId(null);
+    setSelectedSplitTitle("");
   };
 
   const individualSplits = splits.filter((split) => !split.group);
@@ -171,27 +225,29 @@ const PendingPayments = () => {
 
   return (
     <div className="p-6 bg-[#FFFFFF] text-[#1D214B] min-h-screen">
-      <h2 className="text-2xl font-bold text-black mb-4">Pending Payments</h2>
+      <h2 className="text-2xl font-bold text-black mb-4 text-center">
+        Pending Payments
+      </h2>
 
       {/* Search & Filter */}
-      <div className="flex gap-4 mb-6">
-        <div className="relative w-full md:w-1/3">
+      <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center items-center">
+        <div className="relative w-full md:w-1/2 lg:w-1/3">
           <input
             type="text"
             placeholder="Search by title, description, amount, group name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full p-2 pl-10 border border-[#9DC3ED] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F3C9A]"
+            className="w-full p-2 pl-10 border border-[#9DC3ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F3C9A]"
           />
           <FontAwesomeIcon
             icon={faSearch}
             className="absolute left-3 top-3 text-gray-500"
           />
         </div>
-        <div className="relative w-full md:w-1/4">
+        <div className="relative w-full md:w-1/2 lg:w-1/4">
           <select
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full p-2 pl-10 border border-[#9DC3ED] rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#1F3C9A]"
+            className="w-full p-2 pl-10 border border-[#9DC3ED] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#1F3C9A]"
           >
             <option value="">Filter By Status</option>
             <option value="Overdue">Overdue</option>
@@ -207,32 +263,33 @@ const PendingPayments = () => {
       </div>
 
       {/* Individual Pending Payments */}
-      <h3 className="text-xl font-semibold text-black mt-4 mb-2">
+      <h3 className="text-xl font-semibold text-black mt-4 mb-2 border-b pb-2">
         Individual Payments
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredIndividualSplits.length === 0 ? (
-          <p className="text-gray-600">No individual pending payments.</p>
+          <p className="text-gray-600 text-center col-span-full">
+            No individual pending payments.
+          </p>
         ) : (
           filteredIndividualSplits.map((split) => (
             <div
               key={split._id}
-              className="bg-white p-4 rounded-md shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm"
+              className="bg-white p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
             >
               <div className="flex items-center gap-4 border-b pb-3">
                 <div className="w-12 h-12 rounded-full border-2 border-[#1F3C9A] flex items-center justify-center bg-gray-200 text-gray-600 font-bold">
-                  {split.title ? split.title[0] : "N/A"}
+                  {split.title ? split.title[0] : "S"}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#1D214B]">
+                  <h3 className="font-semibold text-[#1D214B] mb-1">
                     {split.title}
                   </h3>
                   <p className="text-sm text-gray-600">{split.description}</p>
                   <p className="text-red-600 font-bold flex items-center">
-                    <FontAwesomeIcon
-                      icon={faIndianRupeeSign}
-                      className="mr-1"
-                    />{" "}
+                    <span className="mr-1">
+                      {currencySymbols[split.currency] || split.currency}
+                    </span>{" "}
                     {split.amount}
                   </p>
                 </div>
@@ -288,12 +345,14 @@ const PendingPayments = () => {
       </div>
 
       {/* Group Payments */}
-      <h3 className="text-xl font-semibold text-black mt-8 mb-2">
+      <h3 className="text-xl font-semibold text-black border-b mt-8 mb-2 pb-2">
         Group Payments
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-5">
         {filteredGroupSplits.length === 0 ? (
-          <p className="text-gray-600">No group pending payments.</p>
+          <p className="text-gray-600 text-center col-span-full">
+            No group pending payments.
+          </p>
         ) : (
           filteredGroupSplits.map((split) => {
             const splitStatus = getSplitStatus(split);
@@ -305,17 +364,16 @@ const PendingPayments = () => {
             return (
               <div
                 key={split._id}
-                className="bg-white p-4 rounded-md shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm flex flex-col justify-center"
+                className="bg-white p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm  mx-auto flex flex-col "
               >
                 <div className="flex flex-col justify-center items-center pb-3 border-b">
                   <h3 className="text-lg font-bold text-[#1D214B]">
-                    {split.title} ({split.group?.name || "Unknown Group"}){" "}
+                    {split.title} ({split.group?.name || ""}){" "}
                   </h3>
                   <p className="text-red-600 font-bold flex items-center mt-2">
-                    <FontAwesomeIcon
-                      icon={faIndianRupeeSign}
-                      className="mr-1"
-                    />{" "}
+                    <span className="mr-1">
+                      {currencySymbols[split.currency] || split.currency}
+                    </span>{" "}
                     {splitPendingAmount.toFixed(2)}{" "}
                   </p>
                 </div>
@@ -327,7 +385,7 @@ const PendingPayments = () => {
                   </p>
                 </div>
 
-                <div className="mt-3">
+                <div className="mt-3 flex-grow">
                   {split.splitDetails.map((detail) => (
                     <div
                       key={`${split._id}-${detail.email}`}
@@ -335,10 +393,9 @@ const PendingPayments = () => {
                     >
                       <span className="flex-1">
                         {detail.email} owes:
-                        <FontAwesomeIcon
-                          icon={faIndianRupeeSign}
-                          className="mr-1 ml-1"
-                        />{" "}
+                        <span className="mr-1">
+                          {currencySymbols[split.currency] || split.currency}
+                        </span>{" "}
                         {detail.amount.toFixed(2)}
                       </span>
                       {detail.isPaid ? (
@@ -354,7 +411,7 @@ const PendingPayments = () => {
                         >
                           <FontAwesomeIcon
                             icon={faCheckCircle}
-                            className="mr-1"
+                            className="mr-1 p-2"
                           />{" "}
                           Paid
                         </span>
@@ -376,13 +433,13 @@ const PendingPayments = () => {
                   ))}
                 </div>
                 <div className="flex gap-2 mt-3">
-                  <button className="w-1/2 px-3 py-2 bg-[#1F3C9A] text-white rounded-md hover:bg-[#1D214B] font-light hover:cursor-pointer ">
+                  <button className="w-1/2 px-3 py-2 bg-[#1F3C9A] text-white rounded-lg hover:bg-[#1D214B] font-light hover:cursor-pointer ">
                     Send Reminder <FontAwesomeIcon icon={faBell} />
                   </button>
                   <button
-                    className="w-1/2 px-3 py-2 bg-blue-500 text-white rounded-md font-thin hover:cursor-pointer hover:bg-white hover:text-black ring-2 ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-1/2 px-3 py-2 bg-blue-500 text-white rounded-lg font-thin hover:cursor-pointer hover:bg-white hover:text-black ring-2 ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() =>
-                      handleMarkSplitAsComplete(split._id, split.title)
+                      initiateMarkSplitAsComplete(split._id, split.title)
                     }
                     disabled={
                       !split.splitDetails.some((detail) => !detail.isPaid)
@@ -394,6 +451,13 @@ const PendingPayments = () => {
               </div>
             );
           })
+        )}
+        {showModal && (
+          <ConfirmationModal
+            message={`Are you sure you want to mark the entire split "${selectedSplitTitle}" as paid? This will mark all individual debts within it as paid too.`}
+            onConfirm={confirmMarkSplitAsComplete}
+            onCancel={cancelMarkSplitAsComplete}
+          />
         )}
       </div>
     </div>

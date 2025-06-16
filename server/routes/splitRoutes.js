@@ -109,28 +109,17 @@ router.get("/user-split-count", async (req, res) => {
 // GET /api/splits - Get all splits
 router.get("/splits", async (req, res) => {
   try {
-    const { userId, userEmail } = req.query; // <-- Still expects userEmail here
+    const { userId } = req.query; 
 
-    if (!userId || !userEmail) {
-      // <-- Still checks for userEmail here
-      return res
-        .status(400)
-        .json({ message: "User ID and User Email are required." });
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
     }
-
-    const splits = await Split.find({
-      $or: [
-        { createdBy: userId },
-        { "splitDetails.email": userEmail }, // <-- Uses userEmail here
-      ],
-    })
-      .populate("group")
-      .populate("createdBy", "username email");
+    const splits = await Split.find({ createdBy: userId }).populate("group");
 
     res.json(splits);
   } catch (err) {
     console.error("Error fetching splits:", err);
-    res.status(500).json({ error: "Failed to fetch splits" });
+    res.status(500).json({ error: "Failed to fetch splits." });
   }
 });
 
@@ -156,6 +145,7 @@ router.get("/splits/:id", async (req, res) => {
   }
 });
 
+// Pending payments related routes
 router.patch("/splits/:splitId/mark-member-paid", async (req, res) => {
   try {
     const { splitId } = req.params;
@@ -294,6 +284,59 @@ router.patch("/splits/:splitId/update-member-payment-status", async (req, res) =
   } catch (err) {
     console.error("Critical Error updating member debt status:", err);
     res.status(500).json({ error: "Failed to update member debt status." });
+  }
+});
+
+
+router.get("/settled", async (req, res) => {
+  const { userId } = req.query;
+
+  try {
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+
+    const allSplits = await Split.find({
+      $or: [
+        { createdBy: userId },
+        { "splitDetails.email": req.query.email }, 
+      ],
+    }).populate('group');
+
+    const settledSplits = allSplits.filter((split) =>
+      split.splitDetails.every((member) => member.isPaid === true)
+    );
+
+    res.json(settledSplits);
+  } catch (err) {
+    console.error("Error in /splits/settled:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+// Marking split as not settled
+router.patch("/splits/:splitId/mark-not-settled", async (req, res) => {
+  try {
+    const { splitId } = req.params;
+    const split = await Split.findById(splitId);
+
+    if (!split) {
+      return res.status(404).json({ message: "Split not found" });
+    }
+
+    split.status = "pending";
+
+    split.splitDetails.forEach(detail => {
+      detail.isPaid = false;
+      detail.paidAt = null; 
+    });
+
+    await split.save();
+    res.json({ message: "Split successfully marked as not settled and moved to pending payments.", split });
+  } catch (error) {
+    console.error("Error marking split as not settled:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 });
 
