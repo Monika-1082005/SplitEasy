@@ -7,32 +7,27 @@ const faqData = [
   {
     question: "What is SplitEasy?",
     answer:
-      "SplitEasy is a web platform that helps you split expenses with friends and track pending payments effortlessly.",
-  },
-  {
-    question: "How do I add a new split?",
-    answer:
-      "Go to the 'Add Split' section, enter the total amount, add participants, and specify their share. The system will notify them automatically.",
-  },
-  {
-    question: "How does SplitEasy track payments?",
-    answer:
-      "Once a payment is made, it updates the pending payments section. If you pay manually, you can mark it as paid.",
-  },
-  {
-    question: "Will my friends get payment reminders?",
-    answer:
-      "Yes, SplitEasy sends email reminders to your friends for pending payments.",
+      "SplitEasy is a simple web platform that helps you split expenses with group members and keep track of payments effortlessly.",
   },
   {
     question: "Is SplitEasy free to use?",
     answer:
-      "Yes, SplitEasy is free to use. Some advanced features may require premium access in the future.",
+      "Yes! SplitEasy is completely free to use with all features available to everyone.",
   },
   {
-    question: "Can I settle payments partially?",
+    question: "Do group members need SplitEasy accounts to view splits?",
     answer:
-      "Currently, full payments are tracked, but we are working on adding partial payments soon!",
+      "No, group members do not have access to the splits you create. Each person manages and views their own splits independently in their account.",
+  },
+  {
+    question: "Will group members get payment reminders?",
+    answer:
+      "Yes, SplitEasy sends email reminders to group members at the intervals you set. You can also choose not to send any reminders at all—it's completely up to you.",
+  },
+  {
+    question: "Can I manage multiple groups and track their expenses easily?",
+    answer:
+      "Absolutely! You can create and manage multiple groups for different occasions like trips, roommates, and events.",
   },
 ];
 
@@ -57,8 +52,8 @@ export default function FAQ() {
             key={index}
             className="p-2 md:p-4 bg-white  border rounded-xl shadow-md"
             initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1.5 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.5 }}
           >
             <button
               onClick={() => toggleAccordion(index)}
@@ -72,7 +67,10 @@ export default function FAQ() {
                   activeIndex === index ? "rotate-180" : "rotate-0"
                 }`}
               >
-                <FontAwesomeIcon icon={faAngleDown} className="cursor-pointer" />
+                <FontAwesomeIcon
+                  icon={faAngleDown}
+                  className="cursor-pointer"
+                />
               </span>
             </button>
             <AnimatePresence initial={false}>

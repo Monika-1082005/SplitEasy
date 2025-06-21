@@ -3,13 +3,20 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function LandingPageHero() {
-  const [userCount, setUserCount] = useState(null);
   const apiUrl = import.meta.env.VITE_API_URL;
 
+  const [userCount, setUserCount] = useState(() => {
+    const storedCount = localStorage.getItem("userCount");
+    return storedCount ? parseInt(storedCount) : null;
+  });
+
   useEffect(() => {
-    axios.get(`${apiUrl}/user-count`)
+    axios
+      .get(`${apiUrl}/user-count`)
       .then((response) => {
+        const count = response.data.count;
         setUserCount(response.data.count);
+        localStorage.setItem("userCount", count);
       })
       .catch((error) => {
         console.error("Failed to fetch user count:", error);

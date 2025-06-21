@@ -8,8 +8,10 @@ export default function LandingPage(){
     return(
         <>
         <div className="min-h-screen">
+            <div id="landing-hero">
             <LandingPageNavbar />
             <LandingPageHero />
+            </div>
             <LandingPageFeatures/>
         </div>
         <FAQ />

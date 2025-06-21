@@ -47,9 +47,9 @@ export default function LandingPageFeatures() {
 "
     >
       {/* Header */}
-      <div className="mb-16 text-center max-w-3xl mx-auto">
+      <div className="mb-16 text-center max-w-3xl mx-auto overflow-x-hidden">
         <motion.h2
-          className="text-4xl font-bold text-[#1F3C9A]"
+          className="text-4xl font-bold text-[#1f3c9a]"
           initial={{ opacity: 0, x: 100 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
@@ -78,15 +78,15 @@ export default function LandingPageFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.5 }}
             whileHover={{ scale: 1.02 }}
-            className="rounded-2xl shadow-md px-6 py-8 text-center bg-white"
+            className="rounded-lg shadow-md px-6 py-8 text-center bg-white"
           >
             {/* Glowing Icon */}
             <div className="flex justify-center mb-4 border-b-blue-500">
               <div
-                className="w-14 h-14 text-2xl flex items-center justify-center rounded-full bg-violet-100 text-violet-700"
+                className="w-14 h-14 text-2xl flex items-center justify-center rounded-full bg-blue-100"
                 style={{
                   boxShadow:
-                    "inset 0 2px 6px rgba(168, 85, 247, 0.3), 0 4px 12px rgba(168, 85, 247, 0.5)",
+                    "inset 0 2px 6px rgba(31, 60, 154, 0.3), 0 4px 12px rgba(29, 33, 75, 0.5)",
                 }}
               >
                 {feature.icon}
