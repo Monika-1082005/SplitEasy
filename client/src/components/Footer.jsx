@@ -149,7 +149,7 @@ export default function Footer() {
       {/* Inline Modal */}
       {isModalOpen && (
         <div
-          className="fixed bottom-10 right-10 z-50 w-full max-w-md bg-white rounded-lg p-6 shadow-lg border border-gray-300"
+          className="fixed bottom-5 right-5 z-50 w-[90%] sm:w-96 bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-300"
           role="dialog"
           aria-modal="true"
         >
