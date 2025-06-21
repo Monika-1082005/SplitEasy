@@ -13,7 +13,7 @@ export default function LandingPageNavbar(){
     
             {/* Right Section */}
             <div className="flex gap-3">
-              <button className=" text-[#1d214b] cursor-pointer text-xs md:text-lg transition-transform duration-200 hover:scale-120 hover:underline" onClick={() => navigate("/login")} >
+              <button className=" text-[#1d214b] cursor-pointer text-xs md:text-xl transition-transform duration-200 hover:opacity-90" onClick={() => navigate("/login")} >
                 Login
               </button>
               <button className="px-2 py-1 md:px-4 md:py-2 text-xs md:text-xl bg-[#1d214b] text-white rounded-lg cursor-pointer transition-transform duration-200 hover:scale-105" onClick={() => navigate("/signup")} >
