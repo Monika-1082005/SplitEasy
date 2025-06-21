@@ -96,6 +96,18 @@ const SettledPayments = () => {
     fetchSettledSplits();
   }, [currentUserId]);
 
+  // Effect to manage body scroll
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showModal]);
+
   /**
    * @param {string} splitId - The ID of the split to mark as not settled.
    * @param {string} splitTitle - The title of the split for confirmation message.
@@ -162,8 +174,8 @@ const SettledPayments = () => {
     return <div className="text-center p-6">Loading settled payments...</div>;
 
   return (
-    <div className="p-6 bg-[#FFFFFF] text-[#1D214B] min-h-screen font-inter">
-      <h2 className="text-2xl font-bold text-black mb-4 text-center">
+    <div className="p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen ">
+      <h2 className="text-xl md:text-2xl font-bold text-black mb-4 text-center">
         Settled Payments
       </h2>
 
@@ -211,7 +223,7 @@ const SettledPayments = () => {
       </div>
 
       {/* Individual Settled Payments Section */}
-      <h3 className="text-xl font-semibold text-black mt-4 mb-2 border-b pb-2">
+      <h3 className="text-lg md:text-xl font-semibold text-black mt-4 mb-2 border-b pb-2">
         Individual Settled Payments
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -272,10 +284,10 @@ const SettledPayments = () => {
       </div>
 
       {/* Group Settled Payments Section */}
-      <h3 className="text-xl font-semibold text-black mt-8 mb-2 border-b pb-2">
+      <h3 className=" text-lg md:text-xl font-semibold text-black mt-4 md:mt-4 mb-2 border-b pb-2">
         Group Settled Payments
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-5">
         {groupSettledSplits.length === 0 ? (
           <p className="text-gray-600 text-center col-span-full">
             No group settled payments found.
@@ -292,17 +304,17 @@ const SettledPayments = () => {
                 key={split._id}
                 className="bg-white p-5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.2),0_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
               >
-                <div className="flex items-center gap-4 pb-4 border-b border-gray-200 ">
+                <div className="flex items-center gap-4 pb:2  border-b border-gray-200 ">
                   {/* Avatar with initial */}
                   <div className="w-12 h-12 rounded-full border-2 border-green-600 flex items-center justify-center bg-gray-200 text-green-600 text-xl font-bold flex-shrink-0">
                     {split.title ? split.title[0] : "S"}
                   </div>
                   <div className="flex-grow">
-                    <h3 className="font-bold text-xl text-[#1D214B]">
+                    <h3 className="font-bold text-lg md:text-xl text-[#1D214B]">
                       {split.title}{" "}
                       {split.group?.name ? `(${split.group.name})` : ""}
                     </h3>
-                    <p className="text-green-600 font-bold flex items-center text-lg">
+                    <p className="text-green-600 font-bold flex items-center text-lg mr-1">
                       <span className="mr-1">
                         {currencySymbol[split.currency] || split.currency}
                       </span>
@@ -319,16 +331,20 @@ const SettledPayments = () => {
                     {split.splitDetails.map((member, index) => (
                       <li
                         key={index}
-                        className="flex justify-between items-center text-gray-700 text-sm"
+                        className="flex flex-col text-gray-700 text-sm p-0.25"
                       >
-                        <span className="flex-1">{member.email}</span>
-                        <span className="flex items-center gap-1 text-green-600 font-semibold">
-                          <span className="mr-1">
-                            {currencySymbol[split.currency] || split.currency}
+                        <div className="flex justify-between items-baseline mb-0.5">
+                          <span className="flex-1 min-w-0 break-words text-left pr-2">
+                            {member.email}
                           </span>
-                          {member.amount.toFixed(2)}
-                        </span>
-                        <span className="text-xs text-gray-500 ml-2">
+                          <span className="flex-shrink-0 flex items-baseline gap-1 text-green-600 font-semibold ml-2 ">
+                            <span>
+                              {currencySymbol[split.currency] || split.currency}
+                            </span>
+                            {member.amount.toFixed(2)}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500 text-right ml-auto">
                           {member.paidAt
                             ? new Date(member.paidAt).toLocaleDateString()
                             : "Paid"}
@@ -339,7 +355,7 @@ const SettledPayments = () => {
                 </div>
 
                 <div className="mt-auto text-center pt-4">
-                  <p className="text-base font-semibold text-green-700 flex items-center justify-center gap-2">
+                  <p className="text-sm md:text-base font-semibold text-green-700 flex items-center justify-center gap-1 md:gap-2">
                     <FontAwesomeIcon
                       icon={faCheckCircle}
                       className="text-green-500"
@@ -350,7 +366,7 @@ const SettledPayments = () => {
                     onClick={() =>
                       handleMarkSplitAsNotSettled(split._id, split.title)
                     }
-                    className="mt-3 w-full px-4 py-2 bg-[#f09595] hover:text-white text-black-500 rounded-md hover:bg-red-600 transition-colors "
+                    className="mt-3 w-full px-4 py-1.5 md:py-2 bg-[#f09595] hover:text-white text-black-500 rounded-md hover:bg-red-600 transition-colors"
                   >
                     Mark as Not Settled
                   </button>
