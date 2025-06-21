@@ -77,6 +77,17 @@ const PendingPayments = () => {
     fetchSplits();
   }, [fetchSplits]);
 
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = "hidden"; 
+    } else {
+      document.body.style.overflow = "unset"; 
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showModal]);
+
   const getSplitStatus = (split) => {
     if (split.status === "paid") return "Paid";
 
@@ -116,14 +127,9 @@ const PendingPayments = () => {
         )
       );
 
-      toast.success(response.data.message);
     } catch (err) {
       console.log("Error updating member debt status:", err);
-      toast.error(
-        `Failed to mark member's debt as ${
-          newIsPaidStatus ? "paid" : "unpaid"
-        }.`
-      );
+
     }
   };
 
@@ -224,7 +230,7 @@ const PendingPayments = () => {
   if (error) return <div className="text-center p-6 text-red-500">{error}</div>;
 
   return (
-    <div className="p-6 bg-[#FFFFFF] text-[#1D214B] min-h-screen">
+    <div className="p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen">
       <h2 className="text-2xl font-bold text-black mb-4 text-center">
         Pending Payments
       </h2>
@@ -264,7 +270,7 @@ const PendingPayments = () => {
 
       {/* Individual Pending Payments */}
       <h3 className="text-xl font-semibold text-black mt-4 mb-2 border-b pb-2">
-        Individual Payments
+        Individual Pending Payments
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredIndividualSplits.length === 0 ? (
@@ -345,10 +351,10 @@ const PendingPayments = () => {
       </div>
 
       {/* Group Payments */}
-      <h3 className="text-xl font-semibold text-black border-b mt-8 mb-2 pb-2">
-        Group Payments
+      <h3 className="text-lg md:text-xl font-semibold text-black border-b mt-4 mb-2 pb-2">
+        Group Pending Payments
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6 mt-5">
         {filteredGroupSplits.length === 0 ? (
           <p className="text-gray-600 text-center col-span-full">
             No group pending payments.
@@ -389,9 +395,9 @@ const PendingPayments = () => {
                   {split.splitDetails.map((detail) => (
                     <div
                       key={`${split._id}-${detail.email}`}
-                      className="flex items-center justify-between text-sm text-gray-700 ml-2 mb-1"
+                      className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-700 ml-2 mb-1"
                     >
-                      <span className="flex-1">
+                      <span className="flex-1 min-w-0 break-words text-left mb-1 sm:mb-0">
                         {detail.email} owes:
                         <span className="mr-1">
                           {currencySymbols[split.currency] || split.currency}
@@ -432,7 +438,7 @@ const PendingPayments = () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-2 mt-3">
+                <div className="flex gap-2 md:mt-3 mt-2">
                   <button className="w-1/2 px-3 py-2 bg-[#1F3C9A] text-white rounded-lg hover:bg-[#1D214B] font-light hover:cursor-pointer ">
                     Send Reminder <FontAwesomeIcon icon={faBell} />
                   </button>
