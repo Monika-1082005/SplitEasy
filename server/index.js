@@ -11,8 +11,7 @@ const googleContactsAuthRoutes = require("./routes/googleContactsAuthRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const userRoutes = require("./routes/userRoutes");
 const splitRoutes = require("./routes/splitRoutes");
-// const reviewRoutes = require("./routes/reviewRoutes");
-//const statsRoutes = require("./routes/statsRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 const historyRoutes = require("./routes/historyRoutes");
 
 const app = express();
@@ -60,8 +59,7 @@ app.use(contactRoutes);
 app.use(userRoutes);
 app.use("/", groupRoutes);  // For group creation
 app.use(splitRoutes);
-// app.use(reviewRoutes);
-//app.use(statsRoutes);
+app.use(reviewRoutes);
 app.use("/", historyRoutes);
 
 
