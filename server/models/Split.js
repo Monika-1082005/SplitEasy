@@ -65,7 +65,7 @@ const splitSchema = new mongoose.Schema({
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "sign_up_forms", 
+    ref: "sign_up_forms",
     required: true,
   },
   createdAt: {
@@ -79,9 +79,39 @@ const splitSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["pending", "paid", "due soon"], // Define possible statuses
-    default: "pending", 
+    default: "pending",
     required: true,
   },
+  settledManually: {
+    type: Boolean,
+    default: false
+  },
+  settledAt: { type: Date },
+  unsettledAt: {
+    type: Date,
+    default: null,
+  },
+  paymentLog: [
+    {
+      action: {
+        type: String,
+        enum: ['member_paid', 'member_unpaid', 'split_settled_manual', 'split_settled_auto', 'split_unsettled'],
+        required: true
+      },
+      memberEmail: {
+        type: String,
+        required: function () { return this.action === 'member_paid' || this.action === 'member_unpaid'; }
+      },
+      timestamp: {
+        type: Date,
+        default: Date.now
+      },
+      amount: {
+        type: Number
+      },
+    }
+  ]
+
 });
 
 // Custom validation: Either group or contacts must be provided
@@ -94,4 +124,5 @@ splitSchema.pre("validate", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Split", splitSchema);
+const SplitModel = mongoose.model("Split", splitSchema);
+module.exports = SplitModel;
