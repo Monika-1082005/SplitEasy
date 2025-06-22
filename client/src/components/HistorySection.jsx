@@ -44,14 +44,21 @@ export default function HistorySection() {
         <div key={date} className="mb-6">
           <div className="text-center text-gray-500 text-sm mb-4">{date}</div>
           <div className="space-y-4">
-            {events.map(({ id, time, icon, message }) => (
+            {events.map(({ id, timestamp, icon, message }) => (
               <div
                 key={id}
                 className="flex items-center gap-4 p-3 bg-gray-50 rounded shadow-sm"
               >
                 <div className="text-3xl min-w-[40px] text-center">{icon}</div>
                 <div>
-                  <div className="text-xs text-gray-400 mb-1">{time}</div>
+                  <div className="text-xs text-gray-400 mb-1">
+                      {new Date(timestamp).toLocaleTimeString('en-IN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
+                  </div>
+
                   <div className="text-gray-800 font-medium">{message}</div>
                 </div>
               </div>
