@@ -219,7 +219,7 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
   if (error) return <div className="text-center p-6 text-red-500">{error}</div>;
 
   return (
-    <div className="p-2 md:p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen">
+    <div className="p-2 md:p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen m-4">
       <h2 className="text-xl md:text-2xl font-bold text-black mb-4 text-center">
         Pending Payments
       </h2>
@@ -436,7 +436,7 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
                 </div>
                 <div className="flex justify-center md:mt-3 mt-2">
                   <button
-                    className="w-60 md:w-100 md:px-3 py-2 bg-[#1F3C9A] text-white rounded-lg font-thin  hover:cursor-pointer hover:bg-[#1D214B] text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-100 md:px-3 py-2 bg-[#1F3C9A] text-white rounded-lg font-thin  hover:cursor-pointer hover:bg-[#1D214B] text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() =>
                       initiateMarkSplitAsComplete(split._id, split.title)
                     }

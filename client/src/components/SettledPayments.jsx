@@ -168,7 +168,7 @@ const SettledPayments = () => {
     return <div className="text-center p-6">Loading settled payments...</div>;
 
   return (
-    <div className="p-2 md:p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen ">
+    <div className="p-2 md:p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen m-4">
       <h2 className="text-xl md:text-2xl font-bold text-black mb-4 text-center">
         Settled Payments
       </h2>
@@ -348,7 +348,7 @@ const SettledPayments = () => {
                   </ul>
                 </div>
 
-                <div className="mt-auto flex flex-col items-center pt-4">
+                <div className="mt-auto flex flex-col items-center pt-3">
                   <p className="text-sm md:text-base font-semibold text-green-700 flex items-center justify-center gap-1 md:gap-2">
                     <FontAwesomeIcon
                       icon={faCheckCircle}
@@ -360,7 +360,7 @@ const SettledPayments = () => {
                     onClick={() =>
                       handleMarkSplitAsNotSettled(split._id, split.title)
                     }
-                    className="mt-1.5 md:mt-3 w-60 md:w-full px-2 md:px-4 py-1.5 md:py-2 bg-[#f09595] hover:text-white text-sm text-black-500 rounded-md hover:bg-red-700 justify-center transition-colors"
+                    className="mt-1.5 md:mt-3 w-full px-2 md:px-4 py-1.5 md:py-2 bg-[#f09595] hover:text-white text-sm text-black-500 rounded-md hover:bg-red-700 justify-center transition-colors"
                   >
                     Mark as Not Settled
                   </button>
