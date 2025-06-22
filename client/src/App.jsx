@@ -15,6 +15,8 @@ import PrivateRoute from "./components/PrivateRoute";
 import SettledPayments from "./components/SettledPayments";
 import './App.css';
 import HistorySection from "./components/HistorySection";
+import MyGroups from "./components/MyGroups";
+import Help from "./components/Help";
 
 const isAuthenticated = () => !!localStorage.getItem("userId");
 
@@ -84,13 +86,15 @@ function App() {
                   toggleSidebar={() => setIsExpanded((prev) => !prev)}
                   isExpanded={isExpanded} 
                 />
-                <div className="flex-1 p-4">
+                <div className="flex-1 p-4 mt-10">
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/create-split" element={<CreateSplit />} />
                     <Route path="/pending-payments" element={<PendingPayments />} />
                     <Route path="/settled-payments" element={<SettledPayments />} />
                     <Route path="/history" element={<HistorySection />} />
+                    <Route path="/my-groups" element={<MyGroups />} />
+                    <Route path="/help" element={<Help />} />
                   </Routes>
                 </div>
               </div>
