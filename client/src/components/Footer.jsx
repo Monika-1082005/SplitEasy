@@ -83,7 +83,7 @@ export default function Footer() {
             <ul className="text-sm space-y-2 text-gray-700">
               <li>
                 <a
-                  href="#landing-hero"
+                  href="#landing-home"
                   className="hover:text-[#1F3C9A] transition"
                   onClick={handleSmoothScroll}
                 >
