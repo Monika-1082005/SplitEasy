@@ -406,5 +406,71 @@ router.patch("/splits/:splitId/mark-not-settled", async (req, res) => {
   }
 });
 
+// Route to get user's pending and settled payment counts
+router.get("/user-payment-stats", async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Missing userId" });
+    }
+
+    // Find all splits created by the user
+    const splits = await Split.find({ createdBy: userId }).lean();
+
+    let pendingCount = 0;
+    let settledCount = 0;
+
+    splits.forEach(split => {
+      if (split.status === "paid") {
+        settledCount++;
+      } else {
+        pendingCount++;
+      }
+    });
+
+    res.json({ success: true, pending: pendingCount, settled: settledCount });
+  } catch (err) {
+    console.error("Error fetching payment stats:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.get("/user-payment-timeline", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "Missing userId" });
+    }
+
+    const splits = await Split.find({ createdBy: userId }).lean();
+
+    const timelineMap = {};
+
+    for (const split of splits) {
+      const date = split.createdAt.toISOString().split("T")[0]; // yyyy-mm-dd
+
+      if (!timelineMap[date]) {
+        timelineMap[date] = { pending: 0, settled: 0 };
+      }
+
+      const isSettled = split.splitDetails?.every((member) => member.isPaid === true);
+      if (isSettled) {
+        timelineMap[date].settled++;
+      } else {
+        timelineMap[date].pending++;
+      }
+    }
+
+    const timeline = Object.entries(timelineMap)
+      .map(([date, data]) => ({ date, ...data }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    res.json({ success: true, timeline });
+  } catch (err) {
+    console.error("Error building payment timeline:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
 
 module.exports = router;
