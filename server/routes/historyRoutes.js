@@ -32,9 +32,7 @@ router.get("/history", async (req, res) => {
         groups.forEach(g => {
             allEvents.push({
                 id: g._id.toString(),
-                timestamp: g.createdAt.getTime(),
-                date: g.createdAt.toDateString(),
-                time: g.createdAt.toLocaleTimeString(),
+                timestamp: g.createdAt.toISOString(),
                 type: "group_created",
                 message: `Created group "${g.name}"`,
                 icon: "👥",
@@ -52,10 +50,8 @@ router.get("/history", async (req, res) => {
                     ? `Created split "${split.title}" for group "${splitGroupName}"`
                     : `Created split "${split.title}"`;
                 allEvents.push({
-                    id: split._id.toString(),
-                    timestamp: split.createdAt.getTime(),
-                    date: split.createdAt.toDateString(),
-                    time: split.createdAt.toLocaleTimeString(),
+                    id: `${split._id}_split_created_${Date.parse(split.createdAt)}`,
+                    timestamp: split.createdAt.toISOString(),
                     type: "split_created",
                     message,
                     icon: "📃",
@@ -65,9 +61,7 @@ router.get("/history", async (req, res) => {
             // Iterate through the NEW paymentLog to get all historical split-related events
             if (split.paymentLog && Array.isArray(split.paymentLog)) {
                 split.paymentLog.forEach(logEntry => {
-                    const logTimestamp = new Date(logEntry.timestamp).getTime();
-                    const logDate = new Date(logTimestamp).toDateString();
-                    const logTime = new Date(logTimestamp).toLocaleTimeString();
+                    const isoTimestamp = new Date(logEntry.timestamp).toISOString();
 
                     let event = null;
 
@@ -77,10 +71,8 @@ router.get("/history", async (req, res) => {
                             // This prevents showing 'member_marked_paid' events for everyone in the group
                             if (split.createdBy.toString() === userId || logEntry.memberEmail === userEmail) {
                                 event = {
-                                    id: `${split._id}_member_paid_${logEntry.memberEmail}_${logTimestamp}`,
-                                    timestamp: logTimestamp,
-                                    date: logDate,
-                                    time: logTime,
+                                    id: `${split._id}_${logEntry.action}_${logEntry.memberEmail || "no-email"}_${Date.parse(isoTimestamp)}`,
+                                    timestamp: isoTimestamp,
                                     type: "member_marked_paid",
                                     message: `${split.createdBy.toString() === userId ? 'You marked' : logEntry.memberEmail} "${logEntry.memberEmail}" as paid for split "${split.title}"`,
                                     icon: "🤝",
@@ -91,10 +83,8 @@ router.get("/history", async (req, res) => {
                             // Only include if the current user is the creator OR the specific member who was marked unpaid
                             if (split.createdBy.toString() === userId || logEntry.memberEmail === userEmail) {
                                 event = {
-                                    id: `${split._id}_member_unpaid_${logEntry.memberEmail}_${logTimestamp}`,
-                                    timestamp: logTimestamp,
-                                    date: logDate,
-                                    time: logTime,
+                                    id: `${split._id}_${logEntry.action}_${logEntry.memberEmail || "no-email"}_${Date.parse(isoTimestamp)}`,
+                                    timestamp: isoTimestamp,
                                     type: "member_marked_unpaid", // New event type for clarity
                                     message: `${split.createdBy.toString() === userId ? 'You marked' : logEntry.memberEmail} "${logEntry.memberEmail}" as unpaid for split "${split.title}"`,
                                     icon: "⚠️",
@@ -105,10 +95,8 @@ router.get("/history", async (req, res) => {
                             // Only show if the current user is the creator (who initiated the manual settlement)
                             if (split.createdBy.toString() === userId) {
                                 event = {
-                                    id: `${split._id}_fully_settled_manual_${logTimestamp}`,
-                                    timestamp: logTimestamp,
-                                    date: logDate,
-                                    time: logTime,
+                                    id: `${split._id}_${logEntry.action}_${logEntry.memberEmail || "no-email"}_${Date.parse(isoTimestamp)}`,
+                                    timestamp: isoTimestamp,
                                     type: "split_settled", // Reusing this type
                                     message: `Split "${split.title}" has been manually settled`,
                                     icon: "✅",
@@ -119,10 +107,8 @@ router.get("/history", async (req, res) => {
                             // Only show if the current user is the creator (whose split became fully paid)
                             if (split.createdBy.toString() === userId) {
                                 event = {
-                                    id: `${split._id}_fully_settled_auto_${logTimestamp}`,
-                                    timestamp: logTimestamp,
-                                    date: logDate,
-                                    time: logTime,
+                                    id: `${split._id}_${logEntry.action}_${logEntry.memberEmail || "no-email"}_${Date.parse(isoTimestamp)}`,
+                                    timestamp: isoTimestamp,
                                     type: "split_settled", // Reusing this type
                                     message: `Split "${split.title}" has been fully settled automatically`,
                                     icon: "✅",
@@ -133,10 +119,8 @@ router.get("/history", async (req, res) => {
                             // Only show if the current user is the creator (who unsettled the split)
                             if (split.createdBy.toString() === userId) {
                                 event = {
-                                    id: `${split._id}_marked_unsettled_${logTimestamp}`,
-                                    timestamp: logTimestamp,
-                                    date: logDate,
-                                    time: logTime,
+                                    id: `${split._id}_${logEntry.action}_${logEntry.memberEmail || "no-email"}_${Date.parse(isoTimestamp)}`,
+                                    timestamp: isoTimestamp,
                                     type: "split_unsettled",
                                     message: `Marked split "${split.title}" as unsettled`,
                                     icon: "⚠️",
@@ -157,8 +141,9 @@ router.get("/history", async (req, res) => {
 
         // Group events by date
         const grouped = sortedEvents.reduce((acc, event) => {
-            if (!acc[event.date]) acc[event.date] = [];
-            acc[event.date].push(event);
+            const dateKey = new Date(event.timestamp).toLocaleDateString();
+            if (!acc[dateKey]) acc[dateKey] = [];
+            acc[dateKey].push(event);
             return acc;
         }, {});
 
