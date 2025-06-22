@@ -44,17 +44,17 @@ export default function Sidebar({ expanded, isMobile, onClose }) {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className={`flex ${isMobile ? "h-screen" : "min-h-screen"}`}>
       <aside
-        className={`bg-white border-r shadow-sm transition-all duration-300 flex flex-col h-full
-          ${
-            isMobile
-              ? `fixed top-0 left-0 h-full z-50 transform transition-transform ${
-                  expanded ? "translate-x-0" : "-translate-x-full"
-                } w-64` // fixed overlay on mobile
-              : `w-fit relative` // normal on desktop
-          }
-        `}
+        className={`bg-white border-r shadow-sm transition-all duration-300 flex flex-col flex-grow h-full
+    ${
+      isMobile
+        ? `fixed top-0 left-0 h-screen z-50 transform ${
+            expanded ? "translate-x-0" : "-translate-x-full"
+          } w-64`
+        : `relative h-screen w-fit`
+    }
+  `}
       >
         <nav className="h-full w-fit flex flex-col bg-white border-r shadow-sm transition-all duration-300">
           <div
@@ -69,17 +69,17 @@ export default function Sidebar({ expanded, isMobile, onClose }) {
                 expanded ? "w-32" : "w-0"
               }`}
             />
-              {/* Add this below: */}
-              {isMobile && expanded && (
-                <button
-                  onClick={onClose}
-                  aria-label="Close sidebar"
-                  className="absolute top-4 right-4 p-1 rounded-md transition"
-                >
-                  <X className="w-6 h-6 text-gray-700 cursor-pointer" />
-                </button>
-              )}
-            </div>
+            {/* Add this below: */}
+            {isMobile && expanded && (
+              <button
+                onClick={onClose}
+                aria-label="Close sidebar"
+                className="absolute top-4 right-4 p-1 rounded-md transition"
+              >
+                <X className="w-6 h-6 text-gray-700 cursor-pointer" />
+              </button>
+            )}
+          </div>
 
           <SidebarContext.Provider value={{ expanded }}>
             <ul className="flex-1 px-3 py-4">
