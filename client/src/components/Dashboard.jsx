@@ -11,8 +11,6 @@ import {
 } from "chart.js";
 
 import { Doughnut, Line } from "react-chartjs-2";
-import pendingPayment from "../data/PendingPayment.json";
-import settledPayment from "../data/SettledPayment.json";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -27,32 +25,12 @@ ChartJS.register(
   Legend
 );
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-// Function to format dates from "dd-mm-yyyy" to "yyyy-mm-dd"
-const formatDate = (dateStr) => {
-  if (!dateStr) return "";
-  const [dd, mm, yyyy] = dateStr.split("-");
-  return `${yyyy}-${mm}-${dd}`;
-};
-
-// Extract and format dates for pending and settled payments
-const pendingData = pendingPayment.map((data) => ({
-  date: formatDate(data.Date),
-  amount: data.Amount,
-}));
-
-const settledData = settledPayment.map((data) => ({
-  date: formatDate(data.Date),
-  amount: data.Amount,
-}));
-
-// Combine all dates and sort them
-const allDates = [
-  ...new Set([...pendingData, ...settledData].map((d) => d.date)),
-].sort((a, b) => new Date(a) - new Date(b));
-
+const apiUrl = import.meta.env.VITE_API_URL;
 const Dashboard = () => {
   const [splitCount, setSplitCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [settledCount, setSettledCount] = useState(0);
+  const [timelineData, setTimelineData] = useState([]);
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -72,6 +50,33 @@ const Dashboard = () => {
           console.error("Split count error:", err);
           toast.error("Something went wrong", { autoClose: 2000 });
         });
+
+      // Fetch pending and settled payment counts
+      axios
+        .get(`${apiUrl}/user-payment-stats`, { params: { userId } })
+        .then((res) => {
+          if (res.data.success) {
+            setPendingCount(res.data.pending);
+            setSettledCount(res.data.settled);
+          } else {
+            toast.error("Failed to load payment stats", { autoClose: 2000 });
+          }
+        })
+        .catch((err) => {
+          console.error("Payment stats error:", err);
+          toast.error("Something went wrong", { autoClose: 2000 });
+        });
+
+      axios
+        .get(`${apiUrl}/user-payment-timeline`, { params: { userId } })
+        .then((res) => {
+          if (res.data.success) {
+            setTimelineData(res.data.timeline);
+          }
+        })
+        .catch((err) => {
+          console.error("Timeline stats error:", err);
+        });
     }
   }, []);
 
@@ -81,6 +86,14 @@ const Dashboard = () => {
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          stepSize: 10, // Tick steps every 10
+          precision: 0, // No decimals
+          callback: function (value) {
+            return Number.isInteger(value) ? value : null;
+          },
+        },
+        suggestedMax: 50,
       },
     },
   };
@@ -98,36 +111,32 @@ const Dashboard = () => {
     },
     {
       title: "Pending Payments",
-      value: "40",
+      value: pendingCount.toString(),
       icon: <FaClock className="text-yellow-500 text-3xl" />,
     },
     {
       title: "Settled Payments",
-      value: "60",
+      value: settledCount.toString(),
       icon: <FaCheckCircle className="text-green-500 text-3xl" />,
     },
   ];
 
   // Creating datasets for the line graph
+  const allDates = timelineData.map((entry) => entry.date);
+
   const lineChartData = {
     labels: allDates,
     datasets: [
       {
         label: "Pending Payments",
-        data: allDates.map((date) => {
-          const found = pendingData.find((d) => d.date === date);
-          return found ? found.amount : 0;
-        }),
+        data: timelineData.map((entry) => entry.pending),
         borderColor: "rgba(255, 99, 132, 1)",
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         tension: 0.4,
       },
       {
         label: "Settled Payments",
-        data: allDates.map((date) => {
-          const found = settledData.find((d) => d.date === date);
-          return found ? found.amount : 0;
-        }),
+        data: timelineData.map((entry) => entry.settled),
         borderColor: "rgba(20, 131, 235, 1)",
         backgroundColor: "rgba(20, 131, 235, 0.2)",
         tension: 0.4,
@@ -140,11 +149,11 @@ const Dashboard = () => {
     labels: ["Pending Payments", "Settled Payments"],
     datasets: [
       {
-        data: [
-          pendingData.reduce((sum, item) => sum + item.amount, 0),
-          settledData.reduce((sum, item) => sum + item.amount, 0),
+        data: [pendingCount, settledCount],
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.8)", // Red for Pending
+          "rgba(20, 131, 235, 0.8)", // Blue for Settled
         ],
-        backgroundColor: ["rgba(255, 99, 132, 0.8)", "rgba(20, 131, 235, 0.8)"],
         borderColor: ["rgba(255, 99, 132, 1)", "rgba(20, 131, 235, 1)"],
       },
     ],

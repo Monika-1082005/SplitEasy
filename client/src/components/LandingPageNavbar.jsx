@@ -52,18 +52,9 @@ export default function LandingPageNavbar() {
             FAQ
           </a>
         </li>
-        <li>
-          <a
-            href="#about"
-            className="hover:text-[#1F3C9A] cursor-pointer"
-            onClick={handleSmoothScroll}
-          >
-            About Us
-          </a>
-        </li>
       </ul>
 
-      {/* Right Section */}
+ {/* Right Section */}
       <div className="flex gap-3">
         {isLoggedIn ? (
           <button
@@ -88,7 +79,7 @@ export default function LandingPageNavbar() {
             </button>
           </>
         )}
-      </div>
-    </nav>
+        </div>
+</nav>
   );
 }

@@ -15,18 +15,19 @@ import PrivateRoute from "./components/PrivateRoute";
 import SettledPayments from "./components/SettledPayments";
 import './App.css';
 import HistorySection from "./components/HistorySection";
+import MyGroups from "./components/MyGroups";
+import Help from "./components/Help";
 
 const isAuthenticated = () => !!localStorage.getItem("userId");
 
 function App() {
   const [isExpanded, setIsExpanded] = useState(() => window.innerWidth >= 768);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIsExpanded(false);
-      } else {
-        setIsExpanded(true);
-      }
+      const isSmall = window.innerWidth < 768;
+      setIsMobile(isSmall);
+      setIsExpanded(!isSmall);
     };
 
     window.addEventListener("resize", handleResize);
@@ -60,7 +61,7 @@ function App() {
           element={
             <PrivateRoute>
             <main className="flex">
-              <Sidebar expanded={isExpanded}>
+              <Sidebar expanded={isExpanded} isMobile={isMobile} onClose={() => setIsExpanded(false)} >
                 {sidebarItems.map((item) => (
                   <SidebarItem
                     key={item.path}
@@ -73,18 +74,27 @@ function App() {
                 ))}
               </Sidebar>
 
-              <div className="flex-1 flex flex-col transition-all duration-300">
+               <div
+                className={`flex-1 flex flex-col transition-all duration-300 ${
+                  isMobile && isExpanded ? "pointer-events-none" : "" /* prevent clicks when sidebar open on mobile */}
+                `}
+                style={{
+                  filter: isMobile && isExpanded ? "opacity(0.3)" : "none", // optional dim background when sidebar open
+                }}
+              >
                 <HomeNavbar 
                   toggleSidebar={() => setIsExpanded((prev) => !prev)}
                   isExpanded={isExpanded} 
                 />
-                <div className="flex-1 p-4">
+                <div className="flex-1 p-4 mt-10">
                   <Routes>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/create-split" element={<CreateSplit />} />
                     <Route path="/pending-payments" element={<PendingPayments />} />
                     <Route path="/settled-payments" element={<SettledPayments />} />
                     <Route path="/history" element={<HistorySection />} />
+                    <Route path="/my-groups" element={<MyGroups />} />
+                    <Route path="/help" element={<Help />} />
                   </Routes>
                 </div>
               </div>
