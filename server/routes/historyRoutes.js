@@ -148,10 +148,13 @@ router.get("/history", async (req, res) => {
         }, {});
 
         // Format into the final history array
-        const history = Object.entries(grouped).map(([date, events]) => ({
-            date,
-            events,
+        const history = Object.entries(grouped)
+            .sort((a, b) => new Date(b[0]) - new Date(a[0])) // sort by date descending
+            .map(([date, events]) => ({
+                date,
+                events: events.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)), // sort events in reverse time
         }));
+
 
         res.json(history);
     } catch (err) {
