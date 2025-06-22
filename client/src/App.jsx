@@ -1,19 +1,22 @@
-import { BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LandingPage from "./components/LandingPage";
 import Dashboard from "./components/Dashboard";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import HomeNavbar from "./components/HomeNavbar";
 import CreateSplit from "./components/CreateSplit";
-import sidebarItems from "./data/sidebarItems";
-import { SidebarItem } from "./components/Sidebar";
 import PendingPayments from "./components/PendingPayments";
 import JoinGroup from "./components/JoinGroup";
 import PrivateRoute from "./components/PrivateRoute";
 import SettledPayments from "./components/SettledPayments";
-import './App.css';
+import "./App.css";
 import HistorySection from "./components/HistorySection";
 import MyGroups from "./components/MyGroups";
 import Help from "./components/Help";
@@ -40,67 +43,67 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route
-          path="/"
-          element={<LandingPage />}
-        />
+        <Route path="/" element={<LandingPage />} />
         <Route
           path="/login"
           element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Login />}
         />
         <Route
           path="/signup"
-          element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Signup />}
+          element={
+            isAuthenticated() ? <Navigate to="/dashboard" /> : <Signup />
+          }
         />
         <Route path="/join-group" element={<JoinGroup />} />
 
-
         {/* Protected Routes (Dashboard & Features) */}
-        <Route 
-          path="/*" 
+        <Route
+          path="/*"
           element={
             <PrivateRoute>
-            <main className="flex">
-              <Sidebar expanded={isExpanded} isMobile={isMobile} onClose={() => setIsExpanded(false)} >
-                {sidebarItems.map((item) => (
-                  <SidebarItem
-                    key={item.path}
-                    path={item.path}
-                    icon={<item.icon size={20} />}
-                    text={item.text}
-                    active={item.active}
-                    alert={item.alert}
-                  />
-                ))}
-              </Sidebar>
-
-               <div
-                className={`flex-1 flex flex-col transition-all duration-300 ${
-                  isMobile && isExpanded ? "pointer-events-none" : "" /* prevent clicks when sidebar open on mobile */}
-                `}
-                style={{
-                  filter: isMobile && isExpanded ? "opacity(0.3)" : "none", // optional dim background when sidebar open
-                }}
-              >
-                <HomeNavbar 
-                  toggleSidebar={() => setIsExpanded((prev) => !prev)}
-                  isExpanded={isExpanded} 
+              <div className="flex h-screen">
+                <Sidebar
+                  expanded={isExpanded}
+                  isMobile={isMobile}
+                  onClose={() => setIsExpanded(false)}
                 />
-                <div className="flex-1 p-4 mt-10">
-                  <Routes>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/create-split" element={<CreateSplit />} />
-                    <Route path="/pending-payments" element={<PendingPayments />} />
-                    <Route path="/settled-payments" element={<SettledPayments />} />
-                    <Route path="/history" element={<HistorySection />} />
-                    <Route path="/my-groups" element={<MyGroups />} />
-                    <Route path="/help" element={<Help />} />
-                  </Routes>
+
+                <div
+                  className={`flex-1 flex flex-col transition-all duration-300 ${
+                    isMobile && isExpanded
+                      ? "pointer-events-none"
+                      : "" /* prevent clicks when sidebar open on mobile */
+                  }
+                `}
+                  style={{
+                    filter: isMobile && isExpanded ? "opacity(0.3)" : "none", // optional dim background when sidebar open
+                  }}
+                >
+                  <HomeNavbar
+                    toggleSidebar={() => setIsExpanded((prev) => !prev)}
+                    isExpanded={isExpanded}
+                  />
+                  <div className="flex-1 overflow-y-auto p-4 mt-10">
+                    <Routes>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/create-split" element={<CreateSplit />} />
+                      <Route
+                        path="/pending-payments"
+                        element={<PendingPayments />}
+                      />
+                      <Route
+                        path="/settled-payments"
+                        element={<SettledPayments />}
+                      />
+                      <Route path="/history" element={<HistorySection />} />
+                      <Route path="/my-groups" element={<MyGroups />} />
+                      <Route path="/help" element={<Help />} />
+                    </Routes>
+                  </div>
                 </div>
               </div>
-            </main>
             </PrivateRoute>
-          } 
+          }
         />
       </Routes>
     </Router>

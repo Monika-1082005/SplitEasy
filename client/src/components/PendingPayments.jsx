@@ -8,7 +8,6 @@ import {
   faClock,
   faSearch,
   faFilter,
-  faBell,
   faCheckCircle,
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
@@ -34,7 +33,6 @@ const PendingPayments = () => {
   const [selectedSplitId, setSelectedSplitId] = useState(null);
   const [selectedSplitTitle, setSelectedSplitTitle] = useState("");
 
-  const currentUserId = localStorage.getItem("userId");
   const currentUserEmail = localStorage.getItem("userEmail");
 
   const fetchSplits = useCallback(async () => {
