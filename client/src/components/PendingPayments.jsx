@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import currencySymbols from "../data/currencySymbols";
 import PropTypes from "prop-types";
@@ -18,7 +17,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 const statusIcons = {
   Overdue: (
-    <FontAwesomeIcon icon={faExclamationTriangle} className="text-red-500" />
+    <FontAwesomeIcon icon={faExclamationTriangle} className="text-[#C81D1E]" />
   ),
   "Due Soon": <FontAwesomeIcon icon={faClock} className="text-yellow-500" />,
   Pending: <FontAwesomeIcon icon={faClock} className="text-blue-500" />,
@@ -79,9 +78,9 @@ const PendingPayments = () => {
 
   useEffect(() => {
     if (showModal) {
-      document.body.style.overflow = "hidden"; 
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset"; 
+      document.body.style.overflow = "unset";
     }
     return () => {
       document.body.style.overflow = "unset";
@@ -126,36 +125,34 @@ const PendingPayments = () => {
           split._id === response.data.split._id ? response.data.split : split
         )
       );
-
     } catch (err) {
       console.log("Error updating member debt status:", err);
-
     }
   };
-
-  const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
-    return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-auto text-center">
-          <p className="text-lg font-semibold mb-4 text-[#1D214B]">{message}</p>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={onConfirm}
-              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-            >
-              Confirm
-            </button>
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
+  return (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center  z-500">
+      <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg max-w-sm  w-9/12 md:w-11/12 mx-auto text-center">
+        <p className="text-sm md:text-lg font-semibold mb-4 text-[#1D214B]">{message}</p>
+        <div className="flex justify-center gap-2 md:gap-4">
+          <button
+            onClick={onConfirm}
+            className="px-2.5 md:px-4 md:py-2 text-white rounded-md 
+           bg-red-700 hover:cursor-pointer text-sm md:text-base transition-colors"
+          >
+            Confirm
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-2.5 md:px-4 py-2 rounded-md bg-gray-700 ring-2 ring-gray-700 hover:bg-white text-white hover:text-gray-700 hover:cursor-pointer text-sm md:text-base  transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   ConfirmationModal.propTypes = {
     message: PropTypes.string.isRequired,
@@ -176,16 +173,8 @@ const PendingPayments = () => {
         `${apiUrl}/splits/${selectedSplitId}/mark-split-complete`
       );
       fetchSplits();
-      toast.success(
-        response.data.message || "Split successfully marked as complete!"
-      );
     } catch (err) {
       console.error("Error marking split as complete:", err);
-      toast.error(
-        `Failed to mark split as complete: ${
-          err.response?.data?.message || err.message
-        }`
-      );
     } finally {
       setSelectedSplitId(null);
       setSelectedSplitTitle("");
@@ -230,14 +219,14 @@ const PendingPayments = () => {
   if (error) return <div className="text-center p-6 text-red-500">{error}</div>;
 
   return (
-    <div className="p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen">
-      <h2 className="text-2xl font-bold text-black mb-4 text-center">
+    <div className="p-2 md:p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen">
+      <h2 className="text-xl md:text-2xl font-bold text-black mb-4 text-center">
         Pending Payments
       </h2>
 
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center items-center">
-        <div className="relative w-full md:w-1/2 lg:w-1/3">
+        <div className="relative text-sm md:text-base w-full md:w-1/2 lg:w-1/3">
           <input
             type="text"
             placeholder="Search by title, description, amount, group name"
@@ -250,7 +239,7 @@ const PendingPayments = () => {
             className="absolute left-3 top-3 text-gray-500"
           />
         </div>
-        <div className="relative w-full md:w-1/2 lg:w-1/4">
+        <div className="relative text-sm md:text-base w-full md:w-1/2 lg:w-1/4">
           <select
             onChange={(e) => setFilterStatus(e.target.value)}
             className="w-full p-2 pl-10 border border-[#9DC3ED] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#1F3C9A]"
@@ -269,19 +258,19 @@ const PendingPayments = () => {
       </div>
 
       {/* Individual Pending Payments */}
-      <h3 className="text-xl font-semibold text-black mt-4 mb-2 border-b pb-2">
+      <h3 className="text-lg md:text-xl font-semibold text-black mt-4 mb-2 border-b pb-2">
         Individual Pending Payments
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredIndividualSplits.length === 0 ? (
-          <p className="text-gray-600 text-center col-span-full">
+          <p className="text-gray-600 text-center col-span-full text-sm md:text-base">
             No individual pending payments.
           </p>
         ) : (
           filteredIndividualSplits.map((split) => (
             <div
               key={split._id}
-              className="bg-white p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
+              className="bg-white p-2 md:p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
             >
               <div className="flex items-center gap-4 border-b pb-3">
                 <div className="w-12 h-12 rounded-full border-2 border-[#1F3C9A] flex items-center justify-center bg-gray-200 text-gray-600 font-bold">
@@ -292,8 +281,8 @@ const PendingPayments = () => {
                     {split.title}
                   </h3>
                   <p className="text-sm text-gray-600">{split.description}</p>
-                  <p className="text-red-600 font-bold flex items-center">
-                    <span className="mr-1">
+                  <p className="text-red-700 font-bold flex items-center">
+                    <span>
                       {currencySymbols[split.currency] || split.currency}
                     </span>{" "}
                     {split.amount}
@@ -312,9 +301,6 @@ const PendingPayments = () => {
                 </p>
               </div>
               <div className="flex gap-2 mt-3">
-                <button className="w-1/2 px-3 py-2 bg-[#1F3C9A] text-white rounded-md hover:bg-[#1D214B] font-light hover:cursor-pointer ">
-                  Send Reminder <FontAwesomeIcon icon={faBell} />
-                </button>
                 {split.splitDetails.some(
                   (detail) => detail.email === currentUserEmail && detail.isPaid
                 ) ? (
@@ -332,7 +318,7 @@ const PendingPayments = () => {
                   </button>
                 ) : (
                   <button
-                    className="w-1/2 px-3 py-2 bg-[#9DC3ED] text-[#1D214B] rounded-md font-thin hover:cursor-pointer hover:bg-white hover:text-black ring-2 ring-[#1D214B]"
+                    className="w-1/2 px-2 md:px-3 py-2 bg-[#9DC3ED] text-[#1D214B] rounded-md font-thin hover:cursor-pointer hover:bg-white hover:text-black ring-2 ring-[#1D214B]"
                     onClick={() =>
                       handleToggleMemberPaidStatus(
                         split._id,
@@ -354,7 +340,7 @@ const PendingPayments = () => {
       <h3 className="text-lg md:text-xl font-semibold text-black border-b mt-4 mb-2 pb-2">
         Group Pending Payments
       </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6 mt-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-5">
         {filteredGroupSplits.length === 0 ? (
           <p className="text-gray-600 text-center col-span-full">
             No group pending payments.
@@ -370,22 +356,31 @@ const PendingPayments = () => {
             return (
               <div
                 key={split._id}
-                className="bg-white p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm  mx-auto flex flex-col "
+                className="bg-white px-2 py-4 md:p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
               >
-                <div className="flex flex-col justify-center items-center pb-3 border-b">
-                  <h3 className="text-lg font-bold text-[#1D214B]">
-                    {split.title} ({split.group?.name || ""}){" "}
-                  </h3>
-                  <p className="text-red-600 font-bold flex items-center mt-2">
-                    <span className="mr-1">
-                      {currencySymbols[split.currency] || split.currency}
-                    </span>{" "}
-                    {splitPendingAmount.toFixed(2)}{" "}
-                  </p>
+                <div className="flex items-center p-1.5 pb-2 md:pb-3 border-b">
+                  {/* Avatar with initial */}
+                  <div className="w-12 h-12 rounded-full border-2 border-[#1F3C9A] flex items-center justify-center bg-gray-200 text-[#1F3C9A]  text-xl font-bold flex-shrink-0">
+                    {split.title ? split.title[0] : "P"}{" "}
+                    {/* Use 'P' for Pending if title is missing */}
+                  </div>
+                  <div className="flex-grow ml-4">
+                    {" "}
+                    {/* Added ml-4 here for spacing */}
+                    <h3 className="text-lg font-bold text-[#1D214B]">
+                      {split.title}{" "}
+                      {split.group?.name ? `(${split.group.name})` : ""}
+                    </h3>
+                    <p className="text-red-700 font-bold flex items-center md:mt-2">
+                      <span className="mr-1">
+                        {currencySymbols[split.currency] || split.currency}
+                      </span>{" "}
+                      {splitPendingAmount.toFixed(2)}{" "}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-3 text-center ">
-                  <p className="text-sm text-gray-600">Status: {splitStatus}</p>
                   <p className="flex items-center justify-center gap-1 text-sm">
                     {statusIcons[splitStatus]} {splitStatus}
                   </p>
@@ -395,11 +390,12 @@ const PendingPayments = () => {
                   {split.splitDetails.map((detail) => (
                     <div
                       key={`${split._id}-${detail.email}`}
-                      className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-700 ml-2 mb-1"
+                      className="flex items-center justify-between text-sm text-gray-700 ml-2 mb-1"
                     >
-                      <span className="flex-1 min-w-0 break-words text-left mb-1 sm:mb-0">
-                        {detail.email} owes:
-                        <span className="mr-1">
+                      <span className="flex-1 min-w-0 break-words text-left mb-1.5 sm:mb-0">
+                        {detail.email}
+                        <br /> owes:
+                        <span className="ml-1">
                           {currencySymbols[split.currency] || split.currency}
                         </span>{" "}
                         {detail.amount.toFixed(2)}
@@ -423,7 +419,7 @@ const PendingPayments = () => {
                         </span>
                       ) : (
                         <button
-                          className="ml-2 px-2 py-1 text-xs m-1 bg-[#c5d5e8] text-[#1D214B] rounded-sm cursor-pointer"
+                          className="md:ml-2 px-1 md:px-2 py-1 md:py-1.5 text-xs ml-0 m-1 mt-2 bg-[#c5d5e8] text-[#1D214B] rounded-sm cursor-pointer"
                           onClick={() =>
                             handleToggleMemberPaidStatus(
                               split._id,
@@ -438,12 +434,9 @@ const PendingPayments = () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex gap-2 md:mt-3 mt-2">
-                  <button className="w-1/2 px-3 py-2 bg-[#1F3C9A] text-white rounded-lg hover:bg-[#1D214B] font-light hover:cursor-pointer ">
-                    Send Reminder <FontAwesomeIcon icon={faBell} />
-                  </button>
+                <div className="flex justify-center md:mt-3 mt-2">
                   <button
-                    className="w-1/2 px-3 py-2 bg-blue-500 text-white rounded-lg font-thin hover:cursor-pointer hover:bg-white hover:text-black ring-2 ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-60 md:w-100 md:px-3 py-2 bg-[#1F3C9A] text-white rounded-lg font-thin  hover:cursor-pointer hover:bg-[#1D214B] text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() =>
                       initiateMarkSplitAsComplete(split._id, split.title)
                     }

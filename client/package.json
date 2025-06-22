@@ -22,6 +22,10 @@
     "alert": "^6.0.2",
     "axios": "^1.9.0",
     "chart.js": "^4.4.8",
+<<<<<<< Updated upstream
+=======
+    "framer-motion": "^12.18.1",
+>>>>>>> Stashed changes
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.475.0",
     "multiselect-react-dropdown": "^2.0.25",

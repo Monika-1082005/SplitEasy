@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { toast } from "react-toastify";
 import currencySymbol from "../data/currencySymbols";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import PropTypes from "prop-types";
@@ -12,19 +11,20 @@ import {
 
 const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-auto text-center">
-        <p className="text-lg font-semibold mb-4 text-[#1D214B]">{message}</p>
-        <div className="flex justify-center gap-4">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center  z-500">
+      <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg max-w-sm  w-9/12 md:w-11/12 mx-auto text-center">
+        <p className="text-sm md:text-lg font-semibold mb-4 text-[#1D214B]">{message}</p>
+        <div className="flex justify-center gap-2 md:gap-4">
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            className="px-2.5 md:px-4 md:py-2 text-white rounded-md 
+           bg-red-700 hover:cursor-pointer text-sm md:text-base transition-colors"
           >
             Confirm
           </button>
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition-colors"
+            className="px-2.5 md:px-4 py-2 rounded-md bg-gray-700 ring-2 ring-gray-700 hover:bg-white text-white hover:text-gray-700 hover:cursor-pointer text-sm md:text-base  transition-colors"
           >
             Cancel
           </button>
@@ -127,14 +127,8 @@ const SettledPayments = () => {
       );
 
       fetchSettledSplits();
-      toast.success(response.data.message || "Split marked as not settled.");
     } catch (err) {
       console.error("Error marking split as not settled:", err);
-      toast.error(
-        `Failed to mark split as not settled: ${
-          err.response?.data?.message || err.message
-        }`
-      );
     } finally {
       setSelectedSplitId(null);
       setSelectedSplitTitle("");
@@ -174,14 +168,14 @@ const SettledPayments = () => {
     return <div className="text-center p-6">Loading settled payments...</div>;
 
   return (
-    <div className="p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen ">
+    <div className="p-2 md:p-4 bg-[#FFFFFF] text-[#1D214B] min-h-screen ">
       <h2 className="text-xl md:text-2xl font-bold text-black mb-4 text-center">
         Settled Payments
       </h2>
 
       {/* Search & Filter Section */}
       <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center items-center">
-        <div className="relative w-full md:w-1/2 lg:w-1/3">
+        <div className="relative w-full text-sm md:text-base md:w-1/2 lg:w-1/3">
           <input
             type="text"
             placeholder="Search by title, amount, group name"
@@ -194,7 +188,7 @@ const SettledPayments = () => {
             className="absolute left-3 top-3 text-gray-500"
           />
         </div>
-        <div className="relative w-full md:w-1/2 lg:w-1/4">
+        <div className="relative text-sm md:text-base w-full md:w-1/2 lg:w-1/4">
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -228,7 +222,7 @@ const SettledPayments = () => {
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {individualSettledSplits.length === 0 ? (
-          <p className="text-gray-600 text-center col-span-full">
+          <p className="text-gray-600 text-center col-span-full text-sm md:text-base">
             No individual settled payments found.
           </p>
         ) : (
@@ -241,7 +235,7 @@ const SettledPayments = () => {
             return (
               <div
                 key={split._id}
-                className="bg-white p-5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.2),0_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
+                className="bg-white p-2 md:p-5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.2),0_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
               >
                 <div className="flex items-center gap-4 border-b border-gray-200 pb-3">
                   {/* Avatar with initial */}
@@ -272,7 +266,7 @@ const SettledPayments = () => {
                     onClick={() =>
                       handleMarkSplitAsNotSettled(split._id, split.title)
                     }
-                    className="mt-3 w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors font-thin"
+                    className="mt-3 w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-[#C81D1E] transition-colors font-thin"
                   >
                     Mark as Not Settled
                   </button>
@@ -304,7 +298,7 @@ const SettledPayments = () => {
                 key={split._id}
                 className="bg-white p-5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.2),0_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
               >
-                <div className="flex items-center gap-4 pb:2  border-b border-gray-200 ">
+                <div className="flex items-center gap-4 pb:2 border-b border-gray-200 ">
                   {/* Avatar with initial */}
                   <div className="w-12 h-12 rounded-full border-2 border-green-600 flex items-center justify-center bg-gray-200 text-green-600 text-xl font-bold flex-shrink-0">
                     {split.title ? split.title[0] : "S"}
@@ -324,7 +318,7 @@ const SettledPayments = () => {
                 </div>
 
                 <div className="mt-3 flex-grow">
-                  <p className="font-medium mb-2 text-[#1D214B] border-b pb-1">
+                  <p className="font-medium mb-2 text-[#1D214B] border-b pb-1 text-sm md:text-base">
                     Members:
                   </p>
                   <ul className="space-y-2">
@@ -337,24 +331,24 @@ const SettledPayments = () => {
                           <span className="flex-1 min-w-0 break-words text-left pr-2">
                             {member.email}
                           </span>
-                          <span className="flex-shrink-0 flex items-baseline gap-1 text-green-600 font-semibold ml-2 ">
-                            <span>
+                          <div className="flex flex-col text-green-600 font-semibold ml-2 text-right">
+                            <span className="flex-shrink-0">
                               {currencySymbol[split.currency] || split.currency}
+                              {member.amount.toFixed(2)}
                             </span>
-                            {member.amount.toFixed(2)}
-                          </span>
+                            <span className="text-xs text-gray-500">
+                              {member.paidAt
+                                ? new Date(member.paidAt).toLocaleDateString()
+                                : "Paid"}
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500 text-right ml-auto">
-                          {member.paidAt
-                            ? new Date(member.paidAt).toLocaleDateString()
-                            : "Paid"}
-                        </span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="mt-auto text-center pt-4">
+                <div className="mt-auto flex flex-col items-center pt-4">
                   <p className="text-sm md:text-base font-semibold text-green-700 flex items-center justify-center gap-1 md:gap-2">
                     <FontAwesomeIcon
                       icon={faCheckCircle}
@@ -366,7 +360,7 @@ const SettledPayments = () => {
                     onClick={() =>
                       handleMarkSplitAsNotSettled(split._id, split.title)
                     }
-                    className="mt-3 w-full px-4 py-1.5 md:py-2 bg-[#f09595] hover:text-white text-black-500 rounded-md hover:bg-red-600 transition-colors"
+                    className="mt-1.5 md:mt-3 w-60 md:w-full px-2 md:px-4 py-1.5 md:py-2 bg-[#f09595] hover:text-white text-sm text-black-500 rounded-md hover:bg-red-700 justify-center transition-colors"
                   >
                     Mark as Not Settled
                   </button>
