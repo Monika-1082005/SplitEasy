@@ -381,7 +381,7 @@ export default function CreateSplit() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center px-4 space-y-6 z-1000">
+    <div className="flex flex-col justify-center items-center px-4 mt-5 md:mt-8 space-y-6 z-1000">
       <div className="bg-white p-6 rounded-lg shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-4xl flex flex-col md:flex-row items-center">
         <div className="flex-1 flex flex-col items-center text-center">
           <h2 className="text-lg font-semibold mb-4 text-[#1D214B]">

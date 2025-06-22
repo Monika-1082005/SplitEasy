@@ -72,7 +72,7 @@ export default function LandingPageNavbar() {
               Login
             </button>
             <button
-              className="px-2 py-1 md:px-4 md:py-2 text-xs md:text-xl bg-[#1d214b] text-white rounded-lg cursor-pointer transition-normal duration-200 hover:scale-105"
+              className="px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-base font-medium bg-[#1d214b] text-white rounded-lg transition-normal duration-200 hover:scale-105 cursor-pointer"
               onClick={() => navigate("/signup")}
             >
               Sign Up

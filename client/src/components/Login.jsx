@@ -5,7 +5,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function Login() {
+export default function Login({ setLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -71,6 +71,7 @@ export default function Login() {
         if (message === "Login successful") {
           localStorage.setItem("userId", userId);
           localStorage.setItem("userEmail", userEmail);
+          setLoggedIn(true); 
           navigate("/dashboard");
         } else {
           toast.error(message || "Login failed");
@@ -138,11 +139,7 @@ export default function Login() {
               </p>
             )}
 
-            <div className="flex gap-2 items-center mb-1 mt-4">
-              <input type="checkbox" className="accent-[#9DC3ED]" />
-              <span className="text-sm">Remember me</span>
-            </div>
-            <button className="mb-1 mt-4 px-10 py-3 text-lg rounded-lg bg-[#1D214B] text-white hover:bg-[#9DC3ED] hover:text-[#1d214b] transition cursor-pointer">
+            <button className="mb-1 mt-8 px-10 py-3 text-lg rounded-lg bg-[#1D214B] text-white hover:bg-[#9DC3ED] hover:text-[#1d214b] transition cursor-pointer">
               Login
             </button>
           </form>

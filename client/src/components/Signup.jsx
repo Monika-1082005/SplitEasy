@@ -208,12 +208,9 @@ export default function Signup() {
               </p>
             )}
 
-            <div className="flex gap-2 mt-4 items-center">
-              <input type="checkbox" className="accent-[#9DC3ED]" />
-              <span className="text-sm">Remember me</span>
-            </div>
 
-            <button className="px-6 py-3 mt-4 mb-4 text-lg rounded-lg bg-[#1D214B] text-white hover:bg-[#9DC3ED] hover:text-[#1d214b] transition cursor-pointer">
+
+            <button className="px-6 py-3 mt-8 mb-4 text-lg rounded-lg bg-[#1D214B] text-white hover:bg-[#9DC3ED] hover:text-[#1d214b] transition cursor-pointer">
               Sign Up
             </button>
           </form>
