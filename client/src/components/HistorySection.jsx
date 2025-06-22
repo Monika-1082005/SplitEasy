@@ -39,7 +39,7 @@ export default function HistorySection() {
   if (history.length === 0) return <p>No recent activity</p>;
 
   return (
-    <div className="mx-auto p-4 bg-white">
+    <div className="mx-auto py-4 px-0 bg-white">
       {history.map(({ date, events }) => (
         <div key={date} className="mb-6">
           <div className="text-center text-gray-500 text-sm mb-4">{date}</div>

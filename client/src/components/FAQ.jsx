@@ -40,7 +40,7 @@ export default function FAQ() {
   return (
     <div
       id="faq"
-      className="px-5 py-3 md:py-10 min-h-screen shadow-[0_-5px_10px_rgba(0,0,0,0.1)] flex flex-col justify-center items-center
+      className="px-5 py-3 md:py-10 min-h-screen flex flex-col justify-center items-center
 "
     >
       <div className="flex justify-center p-4 text-lg md:text-3xl">
