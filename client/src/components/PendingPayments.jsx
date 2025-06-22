@@ -356,7 +356,7 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
             return (
               <div
                 key={split._id}
-                className="bg-white px-2 py-4 md:p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
+                className="bg-white px-2 py-4 md:p-5 rounded-xl shadow-[0px_4px_15px_rgba(0,0,0,0.2),0px_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-sm md:drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
               >
                 <div className="flex items-center p-1.5 pb-2 md:pb-3 border-b">
                   {/* Avatar with initial */}

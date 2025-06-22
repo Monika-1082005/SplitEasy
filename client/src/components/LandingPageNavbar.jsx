@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function LandingPageNavbar() {
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("userId");
   const handleSmoothScroll = (e) => {
     e.preventDefault();
     const targetId = e.currentTarget.getAttribute("href").slice(1); // remove '#'
@@ -20,9 +21,8 @@ export default function LandingPageNavbar() {
           alt="website-logo"
           className="h-10 w-10 md:h-20 md:w-20"
         />
-        <h3 className="text-lg md:text-2xl font-bold">SpiltEasy</h3>
+        <h3 className="text-lg md:text-2xl font-bold">SplitEasy</h3>
       </div>
-
       {/* Center Section - Nav Links */}
       <ul className="hidden md:flex gap-10 text-[#1d214b] font-bold text-sm md:text-lg">
         <li>
@@ -63,21 +63,32 @@ export default function LandingPageNavbar() {
         </li>
       </ul>
 
-      {/* Right Section */}
+ {/* Right Section */}
       <div className="flex gap-3">
-        <button
-          className=" text-[#1d214b] cursor-pointer text-xs md:text-xl transition-transform duration-200 hover:opacity-90"
-          onClick={() => navigate("/login")}
-        >
-          Login
-        </button>
-        <button
-          className="px-2 py-1 md:px-4 md:py-2 text-xs md:text-xl bg-[#1d214b] text-white rounded-lg cursor-pointer transition-transform duration-200 hover:scale-105"
-          onClick={() => navigate("/signup")}
-        >
-          Sign Up
-        </button>
-      </div>
-    </nav>
+        {isLoggedIn ? (
+          <button
+            className="text-xs md:text-base px-2 py-1 md:px-4 md:py-2.5 font-normal md:font-semibold bg-[#1d214b] text-white rounded-sm md:rounded-lg cursor-pointer"
+            onClick={() => navigate("/dashboard")}
+          >
+            Go to Dashboard
+          </button>
+        ) : (
+          <>
+            <button
+              className="text-[#1d214b] cursor-pointer text-xs md:text-base transition-transform duration-200 hover:opacity-90"
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </button>
+            <button
+              className="px-2 py-1 md:px-4 md:py-2 text-xs md:text-xl bg-[#1d214b] text-white rounded-lg cursor-pointer transition-normal duration-200 hover:scale-105"
+              onClick={() => navigate("/signup")}
+            >
+              Sign Up
+            </button>
+          </>
+        )}
+        </div>
+</nav>
   );
 }

@@ -296,9 +296,9 @@ const SettledPayments = () => {
             return (
               <div
                 key={split._id}
-                className="bg-white p-5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.2),0_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
+                className="bg-white p-5 rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.2),0_-4px_15px_rgba(0,0,0,0.1)] drop-shadow-sm md:drop-shadow-lg w-full max-w-sm mx-auto flex flex-col"
               >
-                <div className="flex items-center gap-4 pb:2 border-b border-gray-200 ">
+                <div className="flex items-center gap-4 pb:2 border-gray-200 ">
                   {/* Avatar with initial */}
                   <div className="w-12 h-12 rounded-full border-2 border-green-600 flex items-center justify-center bg-gray-200 text-green-600 text-xl font-bold flex-shrink-0">
                     {split.title ? split.title[0] : "S"}

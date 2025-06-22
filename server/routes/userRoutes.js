@@ -101,6 +101,4 @@ router.get('/user-count', async (req, res) => {
   res.json({ count });
 });
 
-
-
 module.exports = router;
