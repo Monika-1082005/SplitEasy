@@ -14,6 +14,7 @@ import JoinGroup from "./components/JoinGroup";
 
 import SettledPayments from "./components/SettledPayments";
 import './App.css';
+import HistorySection from "./components/HistorySection";
 
 
 function App() {
@@ -72,6 +73,7 @@ function App() {
                     <Route path="/create-split" element={<CreateSplit />} />
                     <Route path="/pending-payments" element={<PendingPayments />} />
                     <Route path="/settled-payments" element={<SettledPayments />} />
+                    <Route path="/history" element={<HistorySection />} />
                   </Routes>
                 </div>
               </div>

@@ -109,7 +109,7 @@ router.get("/user-split-count", async (req, res) => {
 // GET /api/splits - Get all splits
 router.get("/splits", async (req, res) => {
   try {
-    const { userId } = req.query; 
+    const { userId } = req.query;
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
@@ -177,10 +177,26 @@ router.patch("/splits/:splitId/mark-member-paid", async (req, res) => {
     memberDebt.isPaid = true;
     memberDebt.paidAt = new Date();
 
+    split.paymentLog.push({
+      action: 'member_paid',
+      memberEmail: memberEmail,
+      timestamp: memberDebt.paidAt,
+      amount: memberDebt.amount,
+    });
+
+
     const allMembersPaid = split.splitDetails.every(detail => detail.isPaid);
     if (allMembersPaid) {
       split.status = "paid";
+      if (!split.settledManually) {
+        split.settledAt = new Date();
+        split.paymentLog.push({
+          action: 'split_settled_auto',
+          timestamp: split.settledAt,
+        });
+      }
     }
+
 
     await split.save();
     res.json({
@@ -198,6 +214,8 @@ router.patch("/splits/:splitId/mark-member-paid", async (req, res) => {
 router.patch("/splits/:splitId/mark-split-complete", async (req, res) => {
   try {
     const { splitId } = req.params;
+    const userId = req.headers["x-user-id"];
+
 
     const split = await Split.findById(splitId);
     if (!split) {
@@ -211,22 +229,33 @@ router.patch("/splits/:splitId/mark-split-complete", async (req, res) => {
       });
     }
 
-    split.status = "paid";
+
+    const manualSettlementTimestamp = new Date();
     split.splitDetails.forEach((detail) => {
       if (!detail.isPaid) {
         detail.isPaid = true;
-        detail.paidAt = new Date();
+        detail.paidAt = manualSettlementTimestamp;
       }
     });
 
+    split.status = "paid";
+    split.settledManually = true;
+    split.settledAt = manualSettlementTimestamp;
+
+    split.paymentLog.push({
+      action: 'split_settled_manual',
+      timestamp: manualSettlementTimestamp,
+    });
+
+
     await split.save();
     res.json({
-      message: `Split ${splitId} successfully marked as paid! All individual debts within it are now settled.`,
-      split: split,
+      message: `Split ${split.title} marked as settled manually.`,
+      split,
     });
   } catch (err) {
-    console.error("Critical Error marking overall split as paid:", err);
-    res.status(500).json({ error: "Failed to mark overall split as paid." });
+    console.error("Error settling split manually:", err);
+    res.status(500).json({ error: "Failed to mark split as paid." });
   }
 });
 
@@ -267,13 +296,35 @@ router.patch("/splits/:splitId/update-member-payment-status", async (req, res) =
 
     memberDebt.isPaid = isPaid;
     memberDebt.paidAt = isPaid ? new Date() : null;
+    split.paymentLog.push({
+      action: isPaid ? 'member_paid' : 'member_unpaid',
+      memberEmail: memberEmail,
+      timestamp: new Date(),
+      amount: memberDebt.amount,
+    });
+
 
     const allMembersPaid = split.splitDetails.every(detail => detail.isPaid);
     if (allMembersPaid) {
-      split.status = "paid";
+      if (split.status !== "paid" && !split.settledManually) {
+        split.status = "paid";
+        split.settledAt = new Date();
+        split.paymentLog.push({
+          action: 'split_settled_auto',
+          timestamp: split.settledAt,
+        });
+      }
     } else if (split.status === "paid") {
       split.status = "pending";
+      split.settledManually = false;
+      split.settledAt = null;
+      split.unsettledAt = new Date();
+      split.paymentLog.push({
+        action: 'split_unsettled',
+        timestamp: split.unsettledAt,
+      });
     }
+
 
     await split.save();
     res.json({
@@ -299,7 +350,7 @@ router.get("/settled", async (req, res) => {
     const allSplits = await Split.find({
       $or: [
         { createdBy: userId },
-        { "splitDetails.email": req.query.email }, 
+        { "splitDetails.email": req.query.email },
       ],
     }).populate('group');
 
@@ -326,11 +377,26 @@ router.patch("/splits/:splitId/mark-not-settled", async (req, res) => {
     }
 
     split.status = "pending";
+    split.settledManually = false;
+    split.settledAt = null;
+    split.unsettledAt = new Date();
 
     split.splitDetails.forEach(detail => {
       detail.isPaid = false;
-      detail.paidAt = null; 
+      detail.paidAt = null;
     });
+
+    split.paymentLog.push({
+      action: 'split_unsettled',
+      timestamp: split.unsettledAt,
+    });
+
+
+    split.splitDetails.forEach(detail => {
+      detail.isPaid = false;
+      detail.paidAt = null;
+    });
+    split.unsettledAt = new Date();
 
     await split.save();
     res.json({ message: "Split successfully marked as not settled and moved to pending payments.", split });
