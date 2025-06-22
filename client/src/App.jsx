@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import LandingPage from "./components/LandingPage";
@@ -11,11 +11,12 @@ import sidebarItems from "./data/sidebarItems";
 import { SidebarItem } from "./components/Sidebar";
 import PendingPayments from "./components/PendingPayments";
 import JoinGroup from "./components/JoinGroup";
-
+import PrivateRoute from "./components/PrivateRoute";
 import SettledPayments from "./components/SettledPayments";
 import './App.css';
 import HistorySection from "./components/HistorySection";
 
+const isAuthenticated = () => !!localStorage.getItem("userId");
 
 function App() {
   const [isExpanded, setIsExpanded] = useState(() => window.innerWidth >= 768);
@@ -38,9 +39,18 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/"
+          element={<LandingPage />}
+        />
+        <Route
+          path="/login"
+          element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Login />}
+        />
+        <Route
+          path="/signup"
+          element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Signup />}
+        />
         <Route path="/join-group" element={<JoinGroup />} />
 
 
@@ -48,6 +58,7 @@ function App() {
         <Route 
           path="/*" 
           element={
+            <PrivateRoute>
             <main className="flex">
               <Sidebar expanded={isExpanded}>
                 {sidebarItems.map((item) => (
@@ -78,6 +89,7 @@ function App() {
                 </div>
               </div>
             </main>
+            </PrivateRoute>
           } 
         />
       </Routes>
