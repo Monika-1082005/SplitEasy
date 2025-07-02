@@ -5,7 +5,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function Login({ setLoggedIn }) {
+export default function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -71,7 +71,7 @@ export default function Login({ setLoggedIn }) {
         if (message === "Login successful") {
           localStorage.setItem("userId", userId);
           localStorage.setItem("userEmail", userEmail);
-          setLoggedIn(true); 
+          setIsLoggedIn(true); 
           navigate("/dashboard");
         } else {
           toast.error(message || "Login failed");

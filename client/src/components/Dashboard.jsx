@@ -160,7 +160,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-4 bg-blue-100">
+    <div className="p-4 bg-indigo-100">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {cards.map((card, index) => (

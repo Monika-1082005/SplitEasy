@@ -1,9 +1,13 @@
+import { Navigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-import { Navigate } from "react-router-dom";
+const PrivateRoute = ({ children, isLoggedIn }) => {
+  return isLoggedIn ? children : <Navigate to="/" replace />;
+};
 
-const PrivateRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem("userId"); 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+PrivateRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+  isLoggedIn: PropTypes.bool.isRequired, 
 };
 
 export default PrivateRoute;
