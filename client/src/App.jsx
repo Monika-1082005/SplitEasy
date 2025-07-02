@@ -21,9 +21,13 @@ import HistorySection from "./components/HistorySection";
 import MyGroups from "./components/MyGroups";
 import Help from "./components/Help";
 
-const isAuthenticated = () => !!localStorage.getItem("userId");
+// const isAuthenticated = () => !!localStorage.getItem("userId");
 
 function App() {
+
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return !!localStorage.getItem("userId");
+  });
   const [isExpanded, setIsExpanded] = useState(() => window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -46,12 +50,12 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route
           path="/login"
-          element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Login />}
+          element={isLoggedIn ? <Navigate to="/dashboard" /> : <Login setIsLoggedIn={setIsLoggedIn}/>}
         />
         <Route
           path="/signup"
           element={
-            isAuthenticated() ? <Navigate to="/dashboard" /> : <Signup />
+            isLoggedIn ? <Navigate to="/dashboard" /> : <Signup />
           }
         />
         <Route path="/join-group" element={<JoinGroup />} />
@@ -60,7 +64,7 @@ function App() {
         <Route
           path="/*"
           element={
-            <PrivateRoute>
+            <PrivateRoute  isLoggedIn={isLoggedIn}>
               <div className="flex h-screen">
                 <Sidebar
                   expanded={isExpanded}
@@ -82,8 +86,9 @@ function App() {
                   <HomeNavbar
                     toggleSidebar={() => setIsExpanded((prev) => !prev)}
                     isExpanded={isExpanded}
+                    setIsLoggedIn={setIsLoggedIn}
                   />
-                  <div className="flex-1 overflow-y-auto p-4 mt-10">
+                  <div className="flex-1 overflow-y-auto">
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/create-split" element={<CreateSplit />} />
