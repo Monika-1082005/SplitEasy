@@ -39,29 +39,41 @@ const sendRecurringReminders = async (SplitModel, GroupModel) => {
         for (const split of splits) {
             const notifyDays = split.notifyDays;
             if (!notifyDays) continue;
+            if (split.status === 'paid' || split.settledManually === true) {
+                console.log(`  ❌ Split "${split.title}" is settled. Skipping reminder.`);
+                continue;
+            }
+
             const lastNotified = split.lastNotified || split.createdAt;
 
             const msSinceLastNotify = today - new Date(lastNotified);
             const daysSinceLastNotify = msSinceLastNotify / (1000 * 60 * 60 * 24);
+            const diffInDays = Math.floor(daysSinceLastNotify);
 
             console.log(`  Split ID: ${split._id}, Title: "${split.title}"`);
             console.log(`  - notifyDays: ${notifyDays}`);
             console.log(`  - lastNotified: ${new Date(lastNotified).toISOString()}`);
-            console.log(`  - daysSinceLastNotify: ${daysSinceLastNotify.toFixed(2)}`);
-            console.log(`  - Condition: ${daysSinceLastNotify.toFixed(2)} >= ${notifyDays} -> ${daysSinceLastNotify >= notifyDays}`);
+            console.log(`  - daysSinceLastNotify (raw): ${daysSinceLastNotify.toFixed(4)}`);
+            console.log(`  - daysSinceLastNotify (floor): ${diffInDays}`);
+            console.log(`  - Condition: ${diffInDays} >= ${notifyDays} -> ${diffInDays >= notifyDays}`);
 
-            if (daysSinceLastNotify >= notifyDays) {
-            // if (true) {
-                let emailsToNotify = [];
 
-                if (split.contacts && split.contacts.length > 0) {
-                    emailsToNotify = split.contacts;
-                } else if (split.group && split.group.members && split.group.members.length > 0) {
-                    emailsToNotify = split.group.members.map(member => member.email);
-                }
+            let emailsToNotify = [];
 
-                console.log(`  - Emails determined for notification: ${emailsToNotify.join(', ')} (Count: ${emailsToNotify.length})`);
+            if (split.splitDetails?.length > 0) {
+                emailsToNotify = split.splitDetails
+                    .filter(detail => !detail.isPaid)
+                    .map(detail => detail.email);
+            } else if (split.contacts && split.contacts.length > 0) {
+                emailsToNotify = split.contacts;
+            } else if (split.group?.members?.length > 0) {
+                emailsToNotify = split.group.members.map(member => member.email);
+            }
 
+            console.log(`  - Emails to notify (unpaid only): ${emailsToNotify.join(', ')} (Count: ${emailsToNotify.length})`);
+
+            if (diffInDays >= notifyDays) {
+            // if(true){
                 if (emailsToNotify.length > 0) {
                     for (const email of emailsToNotify) {
                         try {
@@ -72,8 +84,9 @@ const sendRecurringReminders = async (SplitModel, GroupModel) => {
                                 html: `
         <p>Hi there,</p>
         <p>This is a friendly reminder that you owe <strong>${currencySymbol[split.currency] || split.currency}${split.amount}</strong> to <strong>${split.createdBy?.username || 'the user'}</strong> for <em>${split.title}</em>.</p>
+          ${split.description ? `<p><strong>A message from <span style="text-transform: capitalize;">${split.createdBy?.username || 'the user'}</span>:</strong> ${split.description}</p>` : ''}
         <p>Please make the payment at your earliest convenience and inform <strong>${split.createdBy?.username || 'the user'}</strong> once it’s done.</p>
-        <p>Thanks,<br />The SplitEasy Team</p>
+        <p>Thanks,<br />The SplitEasy Team</p> 
     `
                             });
 
@@ -86,10 +99,12 @@ const sendRecurringReminders = async (SplitModel, GroupModel) => {
                     split.lastNotified = today;
                     await split.save();
                     console.log(`✅ Updated lastNotified for split "${split.title}" to ${today.toISOString()}`);
-                } else {
+                }
+                else {
                     console.warn(`  No valid emails found for split "${split.title}" despite reminder criteria met.`);
                 }
-            } else {
+            }
+            else {
                 console.log(`  Reminder criteria not met for split "${split.title}". Skipping email.`);
             }
         }

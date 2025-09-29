@@ -7,7 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import PropTypes from "prop-types";
 
 
-export default function Login({ setLoggedIn }) {
+export default function Login({ setIsLoggedIn }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -73,7 +73,7 @@ export default function Login({ setLoggedIn }) {
         if (message === "Login successful") {
           localStorage.setItem("userId", userId);
           localStorage.setItem("userEmail", userEmail);
-          setLoggedIn(true); 
+          setIsLoggedIn(true); 
           navigate("/dashboard");
         } else {
           toast.error(message || "Login failed");
@@ -170,4 +170,3 @@ export default function Login({ setLoggedIn }) {
 Login.propTypes = {
   setLoggedIn: PropTypes.func.isRequired,
 };
-

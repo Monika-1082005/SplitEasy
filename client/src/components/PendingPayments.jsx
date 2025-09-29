@@ -167,7 +167,7 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => {
   const confirmMarkSplitAsComplete = async () => {
     setShowModal(false);
     try {
-      const response = await axios.patch(
+      await axios.patch(
         `${apiUrl}/splits/${selectedSplitId}/mark-split-complete`
       );
       fetchSplits();
